@@ -19,7 +19,7 @@
 
 ## Task 5 – Calendar & Notice Widgets
 - Right-side card layout:
-  - Calendar component (e.g., `react-calendar`).
+  - Calendar component 
   - Notice list with upcoming events/exams pulled from the backend.
 
 ## Task 6 – Africastalking SMS Integration

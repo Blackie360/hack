@@ -1,6 +1,7 @@
 "use client"
 
 import { SidebarNav } from "./sidebar-nav"
+import { Header } from "./header"
 
 interface LayoutProps {
   children: React.ReactNode
@@ -16,7 +17,13 @@ export function Layout({ children }: LayoutProps) {
       
       {/* Main Content Area */}
       <div className="flex-1 ml-64">
-        {children}
+        {/* Sticky Header */}
+        <Header />
+        
+        {/* Page Content */}
+        <main className="flex-1">
+          {children}
+        </main>
       </div>
     </div>
   )
