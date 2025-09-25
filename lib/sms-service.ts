@@ -17,6 +17,15 @@ export interface SMSMessage {
   date: string;
 }
 
+export interface CustomSMSMessage {
+  to: string;
+  message: string;
+  studentName: string;
+  parentName: string;
+  teacherName: string;
+  messageType: 'general' | 'attendance' | 'behavior' | 'academic' | 'event' | 'emergency';
+}
+
 export class SMSService {
   /**
    * Send SMS notification to parent about student attendance
@@ -37,6 +46,29 @@ export class SMSService {
       return true;
     } catch (error) {
       console.error('Failed to send SMS:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send custom SMS message to parent about specific student
+   */
+  static async sendCustomMessage(smsData: CustomSMSMessage): Promise<boolean> {
+    try {
+      const message = this.formatCustomMessage(smsData);
+      
+      const options = {
+        to: [smsData.to],
+        message: message,
+        // You can add a senderId if you have one registered with Africa's Talking
+        // senderId: 'YOUR_SENDER_ID'
+      };
+
+      const response = await sms.send(options);
+      console.log('Custom SMS sent successfully:', response);
+      return true;
+    } catch (error) {
+      console.error('Failed to send custom SMS:', error);
       return false;
     }
   }
@@ -75,14 +107,54 @@ export class SMSService {
   }
 
   /**
+   * Format custom message for SMS
+   */
+  private static formatCustomMessage(smsData: CustomSMSMessage): string {
+    const messageTypePrefixes = {
+      general: '[SCHOOL]',
+      attendance: '[ATTENDANCE]',
+      behavior: '[BEHAVIOR]',
+      academic: '[ACADEMIC]',
+      event: '[EVENT]',
+      emergency: '[URGENT]'
+    };
+
+    const messageTypeTitles = {
+      general: 'SCHOOL MESSAGE',
+      attendance: 'ATTENDANCE UPDATE',
+      behavior: 'BEHAVIOR NOTICE',
+      academic: 'ACADEMIC UPDATE',
+      event: 'EVENT NOTIFICATION',
+      emergency: 'EMERGENCY ALERT'
+    };
+
+    const prefix = messageTypePrefixes[smsData.messageType];
+    const title = messageTypeTitles[smsData.messageType];
+
+    return `${prefix} ${title}
+
+Dear ${smsData.parentName},
+
+${smsData.message}
+
+Student: ${smsData.studentName}
+From: ${smsData.teacherName}
+
+For any questions, please contact the school office.
+
+Thank you,
+School Administration`;
+  }
+
+  /**
    * Format the attendance message for SMS
    */
   private static formatAttendanceMessage(smsData: SMSMessage): string {
-    const statusEmoji = {
-      present: '✅',
-      absent: '❌',
-      late: '⏰',
-      excused: '📝'
+    const statusPrefix = {
+      present: '[PRESENT]',
+      absent: '[ABSENT]',
+      late: '[LATE]',
+      excused: '[EXCUSED]'
     };
 
     const statusText = {
@@ -99,11 +171,11 @@ export class SMSService {
       excused: 'Your child was excused from school today.'
     };
 
-    const emoji = statusEmoji[smsData.attendanceStatus];
+    const prefix = statusPrefix[smsData.attendanceStatus];
     const status = statusText[smsData.attendanceStatus];
     const message = statusMessage[smsData.attendanceStatus];
 
-    return `${emoji} SCHOOL ATTENDANCE ALERT
+    return `${prefix} SCHOOL ATTENDANCE ALERT
 
 Dear Parent/Guardian,
 
