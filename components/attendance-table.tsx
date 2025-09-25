@@ -40,20 +40,22 @@ import {
   FileText, 
   Save, 
   RotateCcw,
-  UserCheck
+  UserCheck,
+  MessageSquare
 } from "lucide-react"
+import { mockStudents } from "@/lib/students"
+import { SMSService } from "@/lib/sms-service"
 
-// Mock student data
-const mockStudents = [
-  { id: 1, name: "John Doe", admissionNo: "ADM001", status: "present", remarks: "" },
-  { id: 2, name: "Jane Smith", admissionNo: "ADM002", status: "absent", remarks: "Sick" },
-  { id: 3, name: "Mike Johnson", admissionNo: "ADM003", status: "late", remarks: "" },
-  { id: 4, name: "Sarah Wilson", admissionNo: "ADM004", status: "present", remarks: "" },
-  { id: 5, name: "David Brown", admissionNo: "ADM005", status: "excused", remarks: "Doctor appointment" },
-  { id: 6, name: "Emily Davis", admissionNo: "ADM006", status: "present", remarks: "" },
-  { id: 7, name: "Chris Miller", admissionNo: "ADM007", status: "absent", remarks: "" },
-  { id: 8, name: "Lisa Garcia", admissionNo: "ADM008", status: "present", remarks: "" },
-]
+// Transform student data for attendance
+const attendanceStudents = mockStudents.map(student => ({
+  id: student.id,
+  name: `${student.firstName} ${student.lastName}`,
+  admissionNo: student.studentId,
+  status: "present" as "present" | "absent" | "late" | "excused",
+  remarks: "",
+  parentPhone: student.parentPhone,
+  parentName: student.parentName
+}))
 
 const statusOptions = [
   { value: "present", label: "Present", icon: CheckCircle, color: "bg-green-100 text-green-800" },
@@ -63,7 +65,7 @@ const statusOptions = [
 ]
 
 export function AttendanceTable() {
-  const [students, setStudents] = useState(mockStudents)
+  const [students, setStudents] = useState(attendanceStudents)
   const [selectedClass, setSelectedClass] = useState("grade-5")
   const [selectedStudent, setSelectedStudent] = useState<any>(null)
   const [remarksDialogOpen, setRemarksDialogOpen] = useState(false)
@@ -112,18 +114,50 @@ export function AttendanceTable() {
     )
   }
 
-  const submitAttendance = () => {
-    // Here you would typically send data to your backend
-    console.log("Submitting attendance:", students)
-    
-    // Check for absent students to trigger SMS
-    const absentStudents = students.filter(s => s.status === "absent")
-    if (absentStudents.length > 0) {
-      console.log("Triggering SMS for absent students:", absentStudents)
-      // SMS integration would go here
+  const submitAttendance = async () => {
+    try {
+      // Here you would typically send data to your backend
+      console.log("Submitting attendance:", students)
+      
+      // Prepare SMS data for ALL students with parent phone numbers
+      const studentsToNotify = students.filter(s => s.parentPhone)
+      
+      if (studentsToNotify.length > 0) {
+        const currentDate = new Date().toLocaleDateString()
+        
+        const smsData = studentsToNotify.map(student => ({
+          to: SMSService.formatPhoneNumber(student.parentPhone),
+          message: "", // Will be formatted by the service
+          studentName: student.name,
+          attendanceStatus: student.status,
+          date: currentDate
+        }))
+
+        // Send SMS notifications
+        const response = await fetch('/api/sms/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bulkData: smsData
+          })
+        })
+
+        const result = await response.json()
+        
+        if (result.success) {
+          alert(`Attendance submitted successfully! SMS notifications sent: ${result.results.success} successful, ${result.results.failed} failed`)
+        } else {
+          alert(`Attendance submitted, but SMS notifications failed: ${result.message}`)
+        }
+      } else {
+        alert("Attendance submitted successfully!")
+      }
+    } catch (error) {
+      console.error("Error submitting attendance:", error)
+      alert("Error submitting attendance. Please try again.")
     }
-    
-    alert("Attendance submitted successfully!")
   }
 
   const getStatusIcon = (status: string) => {
@@ -202,6 +236,7 @@ export function AttendanceTable() {
                   <TableHead className="w-[200px]">Student Name</TableHead>
                   <TableHead className="w-[120px]">Admission No.</TableHead>
                   <TableHead className="w-[200px]">Status</TableHead>
+                  <TableHead className="w-[200px]">Parent Contact</TableHead>
                   <TableHead className="w-[300px]">Remarks</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
@@ -239,6 +274,17 @@ export function AttendanceTable() {
                           )
                         })}
                       </RadioGroup>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">{student.parentName}</div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-600">{student.parentPhone}</span>
+                          {student.parentPhone && (
+                            <MessageSquare className="h-3 w-3 text-blue-500" title="SMS will be sent to parent" />
+                          )}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
@@ -305,7 +351,7 @@ export function AttendanceTable() {
       {/* Summary */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {statusOptions.map((option) => {
               const count = students.filter(s => s.status === option.value).length
               const IconComponent = option.icon
@@ -319,6 +365,15 @@ export function AttendanceTable() {
                 </div>
               )
             })}
+            <div className="flex items-center space-x-2 p-3 rounded-lg bg-blue-50">
+              <MessageSquare className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium text-gray-900">SMS Notifications</p>
+                <p className="text-lg font-bold text-blue-600">
+                  {students.filter(s => s.parentPhone).length}
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

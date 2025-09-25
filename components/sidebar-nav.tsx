@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   School,
+  MessageSquare,
 } from "lucide-react"
 
 const navigationItems = [
@@ -40,6 +41,11 @@ const navigationItems = [
     name: "Settings",
     href: "/settings",
     icon: Settings,
+  },
+  {
+    name: "Test SMS",
+    href: "/test-sms",
+    icon: MessageSquare,
   },
 ]
 
