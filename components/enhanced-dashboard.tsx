@@ -23,6 +23,7 @@ import { AttendanceChart } from "./attendance-chart"
 import { AttendancePieChart, AttendanceStatusPieChart } from "./pie-chart"
 import { CalendarWidget } from "./calendar-widget"
 import { NoticeWidget } from "./notice-widget"
+import { useData } from "@/contexts/data-context"
 import { 
   Users, 
   GraduationCap, 
@@ -47,89 +48,13 @@ import {
   Download
 } from "lucide-react"
 
-// Mock data for enhanced dashboard
-const mockStats = {
-  totalStudents: 550,
-  totalTeachers: 20,
-  attendanceRate: 94.2,
-  activeClasses: 12,
-  newEnrollments: 8,
-  pendingApplications: 3,
-  averageGrade: 85.6,
-  parentSatisfaction: 4.8
-}
+// Quick actions for enhanced dashboard
 
-const mockRecentActivity = [
-  {
-    id: 1,
-    type: "attendance",
-    message: "Grade 5 attendance marked - 95% present",
-    time: "2 min ago",
-    status: "success",
-    user: "Ms. Johnson"
-  },
-  {
-    id: 2,
-    type: "enrollment",
-    message: "New student enrolled - Sarah Johnson",
-    time: "15 min ago",
-    status: "info",
-    user: "Admin"
-  },
-  {
-    id: 3,
-    type: "notification",
-    message: "Absence notification sent to parent",
-    time: "1 hour ago",
-    status: "warning",
-    user: "System"
-  },
-  {
-    id: 4,
-    type: "grade",
-    message: "Math test results uploaded for Grade 3",
-    time: "2 hours ago",
-    status: "success",
-    user: "Mr. Smith"
-  },
-  {
-    id: 5,
-    type: "meeting",
-    message: "Parent-teacher meeting scheduled",
-    time: "3 hours ago",
-    status: "info",
-    user: "Ms. Davis"
-  }
-]
+// Recent activity will come from the data context
 
-const mockNotifications = [
-  {
-    id: 1,
-    title: "Low Attendance Alert",
-    message: "Grade 2 attendance below 80%",
-    time: "5 min ago",
-    type: "warning",
-    read: false
-  },
-  {
-    id: 2,
-    title: "New Application",
-    message: "3 new student applications received",
-    time: "1 hour ago",
-    type: "info",
-    read: false
-  },
-  {
-    id: 3,
-    title: "System Update",
-    message: "Scheduled maintenance tonight at 10 PM",
-    time: "2 hours ago",
-    type: "info",
-    read: true
-  }
-]
+// Notifications will come from the data context
 
-const mockQuickActions = [
+const quickActions = [
   {
     id: 1,
     title: "Take Attendance",
@@ -156,17 +81,20 @@ const mockQuickActions = [
   },
   {
     id: 4,
-    title: "Send Notifications",
-    description: "Notify parents and staff",
+    title: "Manage Data",
+    description: "Add and edit data",
     icon: Bell,
     color: "bg-orange-500",
-    href: "/notifications"
+    href: "/data-management"
   }
 ]
 
 export function EnhancedDashboard() {
+  const { getSchoolStats, activityLogs, notifications } = useData()
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [unreadNotifications, setUnreadNotifications] = useState(2)
+  const [unreadNotifications, setUnreadNotifications] = useState(notifications.filter(n => !n.read).length)
+  
+  const stats = getSchoolStats()
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -230,13 +158,13 @@ export function EnhancedDashboard() {
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {mockNotifications.map((notification) => (
+              {notifications.slice(0, 3).map((notification) => (
                 <DropdownMenuItem key={notification.id} className="flex items-start space-x-3 p-3">
                   {getNotificationIcon(notification.type)}
                   <div className="flex-1">
                     <p className="text-sm font-medium">{notification.title}</p>
                     <p className="text-xs text-muted-foreground">{notification.message}</p>
-                    <p className="text-xs text-muted-foreground">{notification.time}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(notification.createdAt).toLocaleDateString()}</p>
                   </div>
                   {!notification.read && (
                     <div className="w-2 h-2 bg-primary rounded-full" />
@@ -256,10 +184,10 @@ export function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                <p className="text-3xl font-bold text-foreground">{mockStats.totalStudents}</p>
+                <p className="text-3xl font-bold text-foreground">{stats.totalStudents}</p>
                 <div className="flex items-center mt-2">
                   <ArrowUpRight className="h-4 w-4 text-green-500 mr-1" />
-                  <span className="text-sm text-green-500">+{mockStats.newEnrollments} this month</span>
+                  <span className="text-sm text-green-500">+{stats.newEnrollments} this month</span>
                 </div>
               </div>
               <div className="p-3 bg-primary/10 rounded-xl">
@@ -275,9 +203,9 @@ export function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
-                <p className="text-3xl font-bold text-foreground">{mockStats.attendanceRate}%</p>
+                <p className="text-3xl font-bold text-foreground">{stats.attendanceRate}%</p>
                 <div className="mt-2">
-                  <Progress value={mockStats.attendanceRate} className="h-2" />
+                  <Progress value={stats.attendanceRate} className="h-2" />
                 </div>
               </div>
               <div className="p-3 bg-green-500/10 rounded-xl">
@@ -293,7 +221,7 @@ export function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Classes</p>
-                <p className="text-3xl font-bold text-foreground">{mockStats.activeClasses}</p>
+                <p className="text-3xl font-bold text-foreground">{stats.activeClasses}</p>
                 <div className="flex items-center mt-2">
                   <Clock className="h-4 w-4 text-blue-500 mr-1" />
                   <span className="text-sm text-blue-500">Currently in session</span>
@@ -312,7 +240,7 @@ export function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Average Grade</p>
-                <p className="text-3xl font-bold text-foreground">{mockStats.averageGrade}%</p>
+                <p className="text-3xl font-bold text-foreground">{stats.averageGrade}%</p>
                 <div className="flex items-center mt-2">
                   <TrendingUp className="h-4 w-4 text-purple-500 mr-1" />
                   <span className="text-sm text-purple-500">+2.3% from last month</span>
@@ -329,23 +257,9 @@ export function EnhancedDashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Attendance Chart - Takes 2 columns */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Attendance Overview</CardTitle>
-                <CardDescription>Monthly attendance trends and patterns</CardDescription>
-              </div>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <AttendanceChart />
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-2">
+          <AttendanceChart />
+        </div>
 
         {/* Quick Actions */}
         <Card>
@@ -354,13 +268,18 @@ export function EnhancedDashboard() {
             <CardDescription>Frequently used functions</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {mockQuickActions.map((action) => (
+            {quickActions.map((action) => (
               <HoverCard key={action.id}>
                 <HoverCardTrigger asChild>
                   <Button 
                     variant="outline" 
                     className="w-full justify-start h-auto p-4"
-                    onClick={() => window.location.href = action.href}
+                    onClick={() => {
+                      // Use Next.js router for better navigation
+                      if (typeof window !== 'undefined') {
+                        window.location.href = action.href
+                      }
+                    }}
                   >
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-lg ${action.color}`}>
@@ -400,7 +319,7 @@ export function EnhancedDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockRecentActivity.map((activity) => (
+              {activityLogs.slice(0, 5).map((activity) => (
                 <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                   {getStatusIcon(activity.status)}
                   <div className="flex-1">
@@ -429,19 +348,13 @@ export function EnhancedDashboard() {
         </Card>
 
         {/* Pie Charts */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Attendance Status</CardTitle>
-            <CardDescription>Today's attendance breakdown</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AttendanceStatusPieChart />
-          </CardContent>
-        </Card>
+        <div>
+          <AttendanceStatusPieChart />
+        </div>
       </div>
 
       {/* Additional Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Notices Widget */}
         <Card>
           <CardHeader>
@@ -450,17 +363,6 @@ export function EnhancedDashboard() {
           </CardHeader>
           <CardContent>
             <NoticeWidget />
-          </CardContent>
-        </Card>
-
-        {/* Attendance by Grade */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Attendance by Grade</CardTitle>
-            <CardDescription>Grade-wise attendance distribution</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AttendancePieChart />
           </CardContent>
         </Card>
 

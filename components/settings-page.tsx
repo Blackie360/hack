@@ -45,7 +45,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  Loader2,
 } from "lucide-react"
+import { toast } from "sonner"
 
 export function SettingsPage() {
   const [schoolSettings, setSchoolSettings] = useState({
@@ -90,15 +92,27 @@ export function SettingsPage() {
     costPerSms: 0.05,
   })
 
-  const handleSaveSettings = (category: string) => {
-    console.log(`Saving ${category} settings`)
-    // Here you would typically send data to your backend
-    alert(`${category} settings saved successfully!`)
+  const [isSaving, setIsSaving] = useState<string | null>(null)
+
+  const handleSaveSettings = async (category: string) => {
+    setIsSaving(category)
+    try {
+      console.log(`Saving ${category} settings`)
+      // Here you would typically send data to your backend
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      toast.success(`${category} settings saved successfully!`)
+    } catch (error) {
+      console.error(`Error saving ${category} settings:`, error)
+      toast.error(`Error saving ${category} settings. Please try again.`)
+    } finally {
+      setIsSaving(null)
+    }
   }
 
   const handleResetSettings = (category: string) => {
     console.log(`Resetting ${category} settings`)
-    alert(`${category} settings reset to default!`)
+    toast.info(`${category} settings reset to default!`)
   }
 
   return (
@@ -229,9 +243,13 @@ export function SettingsPage() {
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Reset
                 </Button>
-                <Button onClick={() => handleSaveSettings("School")}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                <Button onClick={() => handleSaveSettings("School")} disabled={isSaving === "School"}>
+                  {isSaving === "School" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {isSaving === "School" ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </CardContent>
@@ -332,9 +350,13 @@ export function SettingsPage() {
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Reset
                 </Button>
-                <Button onClick={() => handleSaveSettings("Notifications")}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                <Button onClick={() => handleSaveSettings("Notifications")} disabled={isSaving === "Notifications"}>
+                  {isSaving === "Notifications" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {isSaving === "Notifications" ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </CardContent>
@@ -445,9 +467,13 @@ export function SettingsPage() {
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Reset
                 </Button>
-                <Button onClick={() => handleSaveSettings("System")}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                <Button onClick={() => handleSaveSettings("System")} disabled={isSaving === "System"}>
+                  {isSaving === "System" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {isSaving === "System" ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </CardContent>
@@ -550,9 +576,13 @@ export function SettingsPage() {
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Reset
                 </Button>
-                <Button onClick={() => handleSaveSettings("SMS")}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                <Button onClick={() => handleSaveSettings("SMS")} disabled={isSaving === "SMS"}>
+                  {isSaving === "SMS" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {isSaving === "SMS" ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </CardContent>

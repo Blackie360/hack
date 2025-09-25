@@ -33,7 +33,7 @@ export function AttendancePieChart() {
         <CardTitle className="text-lg font-semibold">Attendance by Grade</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-hidden">
-        <div className="h-full min-h-[250px] w-full">
+        <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -83,7 +83,7 @@ export function AttendanceStatusPieChart() {
         <CardTitle className="text-lg font-semibold">Today's Attendance Status</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-hidden">
-        <div className="h-full min-h-[250px] w-full">
+        <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

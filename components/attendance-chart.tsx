@@ -66,7 +66,7 @@ export function AttendanceChart() {
         </Select>
       </CardHeader>
       <CardContent className="flex-1 overflow-hidden">
-        <div className="h-full min-h-[300px] w-full">
+        <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={currentData}

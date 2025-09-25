@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,20 +40,13 @@ import {
   FileText, 
   Save, 
   RotateCcw,
-  UserCheck
+  UserCheck,
+  MessageSquare,
+  Loader2
 } from "lucide-react"
-
-// Mock student data
-const mockStudents = [
-  { id: 1, name: "John Doe", admissionNo: "ADM001", status: "present", remarks: "" },
-  { id: 2, name: "Jane Smith", admissionNo: "ADM002", status: "absent", remarks: "Sick" },
-  { id: 3, name: "Mike Johnson", admissionNo: "ADM003", status: "late", remarks: "" },
-  { id: 4, name: "Sarah Wilson", admissionNo: "ADM004", status: "present", remarks: "" },
-  { id: 5, name: "David Brown", admissionNo: "ADM005", status: "excused", remarks: "Doctor appointment" },
-  { id: 6, name: "Emily Davis", admissionNo: "ADM006", status: "present", remarks: "" },
-  { id: 7, name: "Chris Miller", admissionNo: "ADM007", status: "absent", remarks: "" },
-  { id: 8, name: "Lisa Garcia", admissionNo: "ADM008", status: "present", remarks: "" },
-]
+import { SMSService } from "@/lib/sms-service"
+import { toast } from "sonner"
+import { useData } from "@/contexts/data-context"
 
 const statusOptions = [
   { value: "present", label: "Present", icon: CheckCircle, color: "bg-green-100 text-green-800" },
@@ -63,11 +56,27 @@ const statusOptions = [
 ]
 
 export function AttendanceTable() {
-  const [students, setStudents] = useState(mockStudents)
-  const [selectedClass, setSelectedClass] = useState("grade-5")
+  const { students: allStudents, addAttendanceRecord } = useData()
+  const [students, setStudents] = useState<any[]>([])
+  const [selectedClass, setSelectedClass] = useState("all")
   const [selectedStudent, setSelectedStudent] = useState<any>(null)
   const [remarksDialogOpen, setRemarksDialogOpen] = useState(false)
   const [tempRemarks, setTempRemarks] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Transform students for attendance when allStudents changes
+  React.useEffect(() => {
+    const attendanceStudents = allStudents.map(student => ({
+      id: student.id,
+      name: `${student.firstName} ${student.lastName}`,
+      admissionNo: student.studentId,
+      status: "present" as "present" | "absent" | "late" | "excused",
+      remarks: "",
+      parentPhone: student.parentPhone,
+      parentName: student.parentName
+    }))
+    setStudents(attendanceStudents)
+  }, [allStudents])
 
   const handleStatusChange = (studentId: number, status: string) => {
     setStudents(prev => 
@@ -112,18 +121,64 @@ export function AttendanceTable() {
     )
   }
 
-  const submitAttendance = () => {
-    // Here you would typically send data to your backend
-    console.log("Submitting attendance:", students)
-    
-    // Check for absent students to trigger SMS
-    const absentStudents = students.filter(s => s.status === "absent")
-    if (absentStudents.length > 0) {
-      console.log("Triggering SMS for absent students:", absentStudents)
-      // SMS integration would go here
+  const submitAttendance = async () => {
+    setIsSubmitting(true)
+    try {
+      // Save attendance records to context
+      const currentDate = new Date().toISOString().split('T')[0]
+      
+      students.forEach(student => {
+        addAttendanceRecord({
+          studentId: student.id,
+          studentName: student.name,
+          date: currentDate,
+          status: student.status,
+          remarks: student.remarks,
+          markedBy: "Teacher" // This should come from current user context
+        })
+      })
+      
+      // Prepare SMS data for ALL students with parent phone numbers
+      const studentsToNotify = students.filter(s => s.parentPhone)
+      
+      if (studentsToNotify.length > 0) {
+        const currentDate = new Date().toLocaleDateString()
+        
+        const smsData = studentsToNotify.map(student => ({
+          to: SMSService.formatPhoneNumber(student.parentPhone),
+          message: "", // Will be formatted by the service
+          studentName: student.name,
+          attendanceStatus: student.status,
+          date: currentDate
+        }))
+
+        // Send SMS notifications
+        const response = await fetch('/api/sms/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bulkData: smsData
+          })
+        })
+
+        const result = await response.json()
+        
+        if (result.success) {
+          toast.success(`Attendance submitted successfully! SMS notifications sent: ${result.results.success} successful, ${result.results.failed} failed`)
+        } else {
+          toast.error(`Attendance submitted, but SMS notifications failed: ${result.message}`)
+        }
+      } else {
+        toast.success("Attendance submitted successfully!")
+      }
+    } catch (error) {
+      console.error("Error submitting attendance:", error)
+      toast.error("Error submitting attendance. Please try again.")
+    } finally {
+      setIsSubmitting(false)
     }
-    
-    alert("Attendance submitted successfully!")
   }
 
   const getStatusIcon = (status: string) => {
@@ -183,9 +238,13 @@ export function AttendanceTable() {
               </Button>
             </div>
             <div className="flex items-center space-x-4">
-              <Button onClick={submitAttendance} className="flex items-center space-x-2">
-                <Save className="h-4 w-4" />
-                <span>Submit Attendance</span>
+              <Button onClick={submitAttendance} disabled={isSubmitting} className="flex items-center space-x-2">
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                <span>{isSubmitting ? "Submitting..." : "Submit Attendance"}</span>
               </Button>
             </div>
           </div>
@@ -202,6 +261,7 @@ export function AttendanceTable() {
                   <TableHead className="w-[200px]">Student Name</TableHead>
                   <TableHead className="w-[120px]">Admission No.</TableHead>
                   <TableHead className="w-[200px]">Status</TableHead>
+                  <TableHead className="w-[200px]">Parent Contact</TableHead>
                   <TableHead className="w-[300px]">Remarks</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
@@ -239,6 +299,17 @@ export function AttendanceTable() {
                           )
                         })}
                       </RadioGroup>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">{student.parentName}</div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-600">{student.parentPhone}</span>
+                          {student.parentPhone && (
+                            <MessageSquare className="h-3 w-3 text-blue-500" />
+                          )}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
@@ -305,7 +376,7 @@ export function AttendanceTable() {
       {/* Summary */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {statusOptions.map((option) => {
               const count = students.filter(s => s.status === option.value).length
               const IconComponent = option.icon
@@ -319,6 +390,15 @@ export function AttendanceTable() {
                 </div>
               )
             })}
+            <div className="flex items-center space-x-2 p-3 rounded-lg bg-blue-50">
+              <MessageSquare className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium text-gray-900">SMS Notifications</p>
+                <p className="text-lg font-bold text-blue-600">
+                  {students.filter(s => s.parentPhone).length}
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
