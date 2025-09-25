@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,21 +41,12 @@ import {
   Save, 
   RotateCcw,
   UserCheck,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from "lucide-react"
-import { mockStudents } from "@/lib/students"
 import { SMSService } from "@/lib/sms-service"
-
-// Transform student data for attendance
-const attendanceStudents = mockStudents.map(student => ({
-  id: student.id,
-  name: `${student.firstName} ${student.lastName}`,
-  admissionNo: student.studentId,
-  status: "present" as "present" | "absent" | "late" | "excused",
-  remarks: "",
-  parentPhone: student.parentPhone,
-  parentName: student.parentName
-}))
+import { toast } from "sonner"
+import { useData } from "@/contexts/data-context"
 
 const statusOptions = [
   { value: "present", label: "Present", icon: CheckCircle, color: "bg-green-100 text-green-800" },
@@ -65,11 +56,27 @@ const statusOptions = [
 ]
 
 export function AttendanceTable() {
-  const [students, setStudents] = useState(attendanceStudents)
-  const [selectedClass, setSelectedClass] = useState("grade-5")
+  const { students: allStudents, addAttendanceRecord } = useData()
+  const [students, setStudents] = useState<any[]>([])
+  const [selectedClass, setSelectedClass] = useState("all")
   const [selectedStudent, setSelectedStudent] = useState<any>(null)
   const [remarksDialogOpen, setRemarksDialogOpen] = useState(false)
   const [tempRemarks, setTempRemarks] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Transform students for attendance when allStudents changes
+  React.useEffect(() => {
+    const attendanceStudents = allStudents.map(student => ({
+      id: student.id,
+      name: `${student.firstName} ${student.lastName}`,
+      admissionNo: student.studentId,
+      status: "present" as "present" | "absent" | "late" | "excused",
+      remarks: "",
+      parentPhone: student.parentPhone,
+      parentName: student.parentName
+    }))
+    setStudents(attendanceStudents)
+  }, [allStudents])
 
   const handleStatusChange = (studentId: number, status: string) => {
     setStudents(prev => 
@@ -115,9 +122,21 @@ export function AttendanceTable() {
   }
 
   const submitAttendance = async () => {
+    setIsSubmitting(true)
     try {
-      // Here you would typically send data to your backend
-      console.log("Submitting attendance:", students)
+      // Save attendance records to context
+      const currentDate = new Date().toISOString().split('T')[0]
+      
+      students.forEach(student => {
+        addAttendanceRecord({
+          studentId: student.id,
+          studentName: student.name,
+          date: currentDate,
+          status: student.status,
+          remarks: student.remarks,
+          markedBy: "Teacher" // This should come from current user context
+        })
+      })
       
       // Prepare SMS data for ALL students with parent phone numbers
       const studentsToNotify = students.filter(s => s.parentPhone)
@@ -147,16 +166,18 @@ export function AttendanceTable() {
         const result = await response.json()
         
         if (result.success) {
-          alert(`Attendance submitted successfully! SMS notifications sent: ${result.results.success} successful, ${result.results.failed} failed`)
+          toast.success(`Attendance submitted successfully! SMS notifications sent: ${result.results.success} successful, ${result.results.failed} failed`)
         } else {
-          alert(`Attendance submitted, but SMS notifications failed: ${result.message}`)
+          toast.error(`Attendance submitted, but SMS notifications failed: ${result.message}`)
         }
       } else {
-        alert("Attendance submitted successfully!")
+        toast.success("Attendance submitted successfully!")
       }
     } catch (error) {
       console.error("Error submitting attendance:", error)
-      alert("Error submitting attendance. Please try again.")
+      toast.error("Error submitting attendance. Please try again.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -217,9 +238,13 @@ export function AttendanceTable() {
               </Button>
             </div>
             <div className="flex items-center space-x-4">
-              <Button onClick={submitAttendance} className="flex items-center space-x-2">
-                <Save className="h-4 w-4" />
-                <span>Submit Attendance</span>
+              <Button onClick={submitAttendance} disabled={isSubmitting} className="flex items-center space-x-2">
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                <span>{isSubmitting ? "Submitting..." : "Submit Attendance"}</span>
               </Button>
             </div>
           </div>
@@ -281,7 +306,7 @@ export function AttendanceTable() {
                         <div className="flex items-center space-x-2">
                           <span className="text-xs text-gray-600">{student.parentPhone}</span>
                           {student.parentPhone && (
-                            <MessageSquare className="h-3 w-3 text-blue-500" title="SMS will be sent to parent" />
+                            <MessageSquare className="h-3 w-3 text-blue-500" />
                           )}
                         </div>
                       </div>

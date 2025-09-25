@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MessageSquare, Send, CheckCircle, XCircle } from "lucide-react"
 import { SMSService } from "@/lib/sms-service"
+import { toast } from "sonner"
 
 export default function TestSMSPage() {
   const [phoneNumber, setPhoneNumber] = useState("")
@@ -18,12 +19,12 @@ export default function TestSMSPage() {
 
   const handleSendTestSMS = async () => {
     if (!phoneNumber || !studentName) {
-      alert("Please fill in all fields")
+      toast.error("Please fill in all fields")
       return
     }
 
     if (!SMSService.validatePhoneNumber(phoneNumber)) {
-      alert("Please enter a valid phone number (e.g., +254712345678)")
+      toast.error("Please enter a valid phone number (e.g., +254712345678)")
       return
     }
 

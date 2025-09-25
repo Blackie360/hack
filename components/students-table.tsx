@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useData } from "@/contexts/data-context"
+import { AddStudentForm } from "@/components/forms/add-student-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,102 +57,21 @@ import {
   GraduationCap,
 } from "lucide-react"
 
-// Mock student data
-const mockStudents = [
-  {
-    id: 1,
-    firstName: "John",
-    lastName: "Doe",
-    admissionNo: "ADM001",
-    email: "john.doe@school.edu",
-    phone: "+1234567890",
-    grade: "Grade 5",
-    class: "5A",
-    dateOfBirth: "2010-05-15",
-    parentName: "Jane Doe",
-    parentPhone: "+1234567891",
-    address: "123 Main St, City",
-    status: "active",
-    attendanceRate: 95,
-    joinDate: "2023-09-01",
-  },
-  {
-    id: 2,
-    firstName: "Jane",
-    lastName: "Smith",
-    admissionNo: "ADM002",
-    email: "jane.smith@school.edu",
-    phone: "+1234567892",
-    grade: "Grade 5",
-    class: "5A",
-    dateOfBirth: "2010-03-22",
-    parentName: "Bob Smith",
-    parentPhone: "+1234567893",
-    address: "456 Oak Ave, City",
-    status: "active",
-    attendanceRate: 88,
-    joinDate: "2023-09-01",
-  },
-  {
-    id: 3,
-    firstName: "Mike",
-    lastName: "Johnson",
-    admissionNo: "ADM003",
-    email: "mike.johnson@school.edu",
-    phone: "+1234567894",
-    grade: "Grade 4",
-    class: "4B",
-    dateOfBirth: "2011-08-10",
-    parentName: "Sarah Johnson",
-    parentPhone: "+1234567895",
-    address: "789 Pine St, City",
-    status: "active",
-    attendanceRate: 92,
-    joinDate: "2023-09-01",
-  },
-  {
-    id: 4,
-    firstName: "Sarah",
-    lastName: "Wilson",
-    admissionNo: "ADM004",
-    email: "sarah.wilson@school.edu",
-    phone: "+1234567896",
-    grade: "Grade 5",
-    class: "5A",
-    dateOfBirth: "2010-12-05",
-    parentName: "Tom Wilson",
-    parentPhone: "+1234567897",
-    address: "321 Elm St, City",
-    status: "inactive",
-    attendanceRate: 75,
-    joinDate: "2023-09-01",
-  },
-  {
-    id: 5,
-    firstName: "David",
-    lastName: "Brown",
-    admissionNo: "ADM005",
-    email: "david.brown@school.edu",
-    phone: "+1234567898",
-    grade: "Grade 4",
-    class: "4A",
-    dateOfBirth: "2011-01-18",
-    parentName: "Lisa Brown",
-    parentPhone: "+1234567899",
-    address: "654 Maple Ave, City",
-    status: "active",
-    attendanceRate: 98,
-    joinDate: "2023-09-01",
-  },
-]
+// Student data will come from the data context
 
 export function StudentsTable() {
-  const [students, setStudents] = useState(mockStudents)
+  const { students: allStudents } = useData()
+  const [students, setStudents] = useState(allStudents)
   const [searchTerm, setSearchTerm] = useState("")
   const [gradeFilter, setGradeFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedStudent, setSelectedStudent] = useState<any>(null)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
+
+  // Update students when allStudents changes
+  useEffect(() => {
+    setStudents(allStudents)
+  }, [allStudents])
 
   // Filter students based on search and filters
   const filteredStudents = useMemo(() => {
@@ -158,7 +79,7 @@ export function StudentsTable() {
       const matchesSearch = 
         student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.admissionNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email.toLowerCase().includes(searchTerm.toLowerCase())
       
       const matchesGrade = gradeFilter === "all" || student.grade === gradeFilter
@@ -203,10 +124,18 @@ export function StudentsTable() {
                 <User className="h-5 w-5 text-gray-500" />
                 <span className="text-sm text-gray-600">{filteredStudents.length} Students</span>
               </div>
-              <Button className="flex items-center space-x-2">
-                <Plus className="h-4 w-4" />
-                <span>Add Student</span>
-              </Button>
+              <AddStudentForm 
+                trigger={
+                  <Button className="flex items-center space-x-2">
+                    <Plus className="h-4 w-4" />
+                    <span>Add Student</span>
+                  </Button>
+                }
+                onSuccess={() => {
+                  // Refresh the students list after adding
+                  // The useEffect will handle this automatically
+                }}
+              />
             </div>
           </div>
         </CardHeader>
@@ -293,7 +222,7 @@ export function StudentsTable() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
-                        {student.admissionNo}
+                        {student.studentId}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -315,8 +244,8 @@ export function StudentsTable() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getAttendanceColor(student.attendanceRate)}>
-                        {student.attendanceRate}%
+                      <Badge className={getAttendanceColor(student.attendance)}>
+                        {student.attendance}%
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -376,7 +305,7 @@ export function StudentsTable() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-500">Admission Number</Label>
-                  <p className="text-lg font-semibold">{selectedStudent.admissionNo}</p>
+                  <p className="text-lg font-semibold">{selectedStudent.studentId}</p>
                 </div>
               </div>
               
@@ -427,13 +356,13 @@ export function StudentsTable() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-500">Attendance Rate</Label>
-                  <Badge className={getAttendanceColor(selectedStudent.attendanceRate)}>
-                    {selectedStudent.attendanceRate}%
+                  <Badge className={getAttendanceColor(selectedStudent.attendance)}>
+                    {selectedStudent.attendance}%
                   </Badge>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-500">Join Date</Label>
-                  <p className="text-lg font-semibold">{selectedStudent.joinDate}</p>
+                  <p className="text-lg font-semibold">{selectedStudent.enrollmentDate}</p>
                 </div>
               </div>
             </div>
