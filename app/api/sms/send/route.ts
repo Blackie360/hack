@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       } else {
         return NextResponse.json({
           success: false,
-          message: 'Failed to send custom SMS'
+          message: 'Failed to send custom SMS. Please check your Africa\'s Talking account balance and try again.'
         }, { status: 500 });
       }
     } else if (bulkData && Array.isArray(bulkData)) {
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       } else {
         return NextResponse.json({
           success: false,
-          message: 'Failed to send SMS'
+          message: 'Failed to send SMS. Please check your Africa\'s Talking account balance and try again.'
         }, { status: 500 });
       }
     } else {

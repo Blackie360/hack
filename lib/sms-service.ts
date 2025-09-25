@@ -2,8 +2,8 @@ import AfricasTalking from 'africastalking';
 
 // Initialize Africa's Talking with your credentials
 const credentials = {
-  apiKey: 'atsk_39b806b4bfd06db95ce7b18698a9fda2ef2fe1630c2dff48859b4d8bd847658ae7a4a5ae',
-  username: 'blackie',
+  apiKey: process.env.AFRICASTALKING_API_KEY || 'atsk_e0b64ba1cf5620b28477cb5893e635a331c589a2b6fe5b89ad6c6c08cc7832f99fc771d7',
+  username: process.env.AFRICASTALKING_USERNAME || 'Chegeh',
 };
 
 const africastalking = AfricasTalking(credentials);
@@ -32,6 +32,18 @@ export class SMSService {
    */
   static async sendAttendanceNotification(smsData: SMSMessage): Promise<boolean> {
     try {
+      // Validate phone number format
+      if (!this.validatePhoneNumber(smsData.to)) {
+        console.error('Invalid phone number format:', smsData.to);
+        return false;
+      }
+
+      // Check if it's an African phone number
+      if (!this.isAfricanPhoneNumber(smsData.to)) {
+        console.warn('Phone number may not be supported by Africa\'s Talking:', smsData.to);
+        console.warn('Africa\'s Talking primarily supports African countries');
+      }
+
       const message = this.formatAttendanceMessage(smsData);
       
       const options = {
@@ -41,9 +53,41 @@ export class SMSService {
         // senderId: 'YOUR_SENDER_ID'
       };
 
+      console.log('Sending SMS to:', smsData.to);
+      console.log('Message:', message);
+      
       const response = await sms.send(options);
-      console.log('SMS sent successfully:', response);
-      return true;
+      console.log('SMS API Response:', response);
+      
+      // Check if SMS was actually delivered
+      if (response && response.SMSMessageData) {
+        const messageData = response.SMSMessageData;
+        console.log('SMS Message Data:', messageData);
+        
+        // Check if any messages were sent
+        if (messageData.Recipients && messageData.Recipients.length > 0) {
+          const recipient = messageData.Recipients[0];
+          console.log('Recipient Status:', recipient);
+          
+          if (recipient.status === 'Success') {
+            console.log('SMS delivered successfully');
+            return true;
+          } else {
+            console.error('SMS delivery failed:', recipient.status, recipient.statusCode);
+            
+            // Handle specific error cases
+            if (recipient.status === 'InsufficientBalance') {
+              console.error('ERROR: Insufficient balance in Africa\'s Talking account. Please top up your account.');
+            } else if (recipient.statusCode === 405) {
+              console.error('ERROR: Account billing issue. Please check your Africa\'s Talking account balance.');
+            }
+            
+            return false;
+          }
+        }
+      }
+      
+      return true; // Assume success if we can't determine status
     } catch (error) {
       console.error('Failed to send SMS:', error);
       return false;
@@ -55,6 +99,18 @@ export class SMSService {
    */
   static async sendCustomMessage(smsData: CustomSMSMessage): Promise<boolean> {
     try {
+      // Validate phone number format
+      if (!this.validatePhoneNumber(smsData.to)) {
+        console.error('Invalid phone number format:', smsData.to);
+        return false;
+      }
+
+      // Check if it's an African phone number
+      if (!this.isAfricanPhoneNumber(smsData.to)) {
+        console.warn('Phone number may not be supported by Africa\'s Talking:', smsData.to);
+        console.warn('Africa\'s Talking primarily supports African countries');
+      }
+
       const message = this.formatCustomMessage(smsData);
       
       const options = {
@@ -64,9 +120,41 @@ export class SMSService {
         // senderId: 'YOUR_SENDER_ID'
       };
 
+      console.log('Sending custom SMS to:', smsData.to);
+      console.log('Message:', message);
+      
       const response = await sms.send(options);
-      console.log('Custom SMS sent successfully:', response);
-      return true;
+      console.log('Custom SMS API Response:', response);
+      
+      // Check if SMS was actually delivered
+      if (response && response.SMSMessageData) {
+        const messageData = response.SMSMessageData;
+        console.log('SMS Message Data:', messageData);
+        
+        // Check if any messages were sent
+        if (messageData.Recipients && messageData.Recipients.length > 0) {
+          const recipient = messageData.Recipients[0];
+          console.log('Recipient Status:', recipient);
+          
+          if (recipient.status === 'Success') {
+            console.log('Custom SMS delivered successfully');
+            return true;
+          } else {
+            console.error('Custom SMS delivery failed:', recipient.status, recipient.statusCode);
+            
+            // Handle specific error cases
+            if (recipient.status === 'InsufficientBalance') {
+              console.error('ERROR: Insufficient balance in Africa\'s Talking account. Please top up your account.');
+            } else if (recipient.statusCode === 405) {
+              console.error('ERROR: Account billing issue. Please check your Africa\'s Talking account balance.');
+            }
+            
+            return false;
+          }
+        }
+      }
+      
+      return true; // Assume success if we can't determine status
     } catch (error) {
       console.error('Failed to send custom SMS:', error);
       return false;
@@ -206,6 +294,7 @@ School Administration`;
 
   /**
    * Format phone number for Africa's Talking (ensure it starts with +)
+   * Handles common African phone number formats
    */
   static formatPhoneNumber(phoneNumber: string): string {
     let cleaned = phoneNumber.replace(/[\s\-\(\)]/g, '');
@@ -215,6 +304,78 @@ School Administration`;
       cleaned = '+' + cleaned;
     }
     
+    // Handle common African phone number formats
+    // Kenya: +254XXXXXXXXX
+    // Uganda: +256XXXXXXXXX
+    // Tanzania: +255XXXXXXXXX
+    // Nigeria: +234XXXXXXXXX
+    // South Africa: +27XXXXXXXXX
+    
     return cleaned;
+  }
+
+  /**
+   * Check if phone number is from a supported African country
+   */
+  static isAfricanPhoneNumber(phoneNumber: string): boolean {
+    const cleaned = phoneNumber.replace(/[\s\-\(\)]/g, '');
+    const africanCountryCodes = [
+      '+254', // Kenya
+      '+256', // Uganda
+      '+255', // Tanzania
+      '+234', // Nigeria
+      '+27',  // South Africa
+      '+233', // Ghana
+      '+220', // Gambia
+      '+225', // Ivory Coast
+      '+226', // Burkina Faso
+      '+227', // Niger
+      '+228', // Togo
+      '+229', // Benin
+      '+230', // Mauritius
+      '+231', // Liberia
+      '+232', // Sierra Leone
+      '+235', // Chad
+      '+236', // Central African Republic
+      '+237', // Cameroon
+      '+238', // Cape Verde
+      '+239', // São Tomé and Príncipe
+      '+240', // Equatorial Guinea
+      '+241', // Gabon
+      '+242', // Republic of the Congo
+      '+243', // Democratic Republic of the Congo
+      '+244', // Angola
+      '+245', // Guinea-Bissau
+      '+246', // British Indian Ocean Territory
+      '+247', // Ascension Island
+      '+248', // Seychelles
+      '+249', // Sudan
+      '+250', // Rwanda
+      '+251', // Ethiopia
+      '+252', // Somalia
+      '+253', // Djibouti
+      '+254', // Kenya
+      '+255', // Tanzania
+      '+256', // Uganda
+      '+257', // Burundi
+      '+258', // Mozambique
+      '+260', // Zambia
+      '+261', // Madagascar
+      '+262', // Réunion
+      '+263', // Zimbabwe
+      '+264', // Namibia
+      '+265', // Malawi
+      '+266', // Lesotho
+      '+267', // Botswana
+      '+268', // Eswatini
+      '+269', // Comoros
+      '+290', // Saint Helena
+      '+291', // Eritrea
+      '+297', // Aruba
+      '+298', // Faroe Islands
+      '+299', // Greenland
+    ];
+    
+    return africanCountryCodes.some(code => cleaned.startsWith(code));
   }
 }

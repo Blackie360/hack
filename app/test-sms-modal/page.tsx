@@ -8,7 +8,7 @@ export default function TestSMSModal() {
     firstName: "John",
     lastName: "Doe",
     parentName: "Jane Doe",
-    parentPhone: "+1234567890",
+    parentPhone: "+254712345678", // Kenyan phone number
     class: "Grade 5A"
   }
 

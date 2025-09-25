@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MessageSquare, Send, CheckCircle, XCircle } from "lucide-react"
 import { SMSService } from "@/lib/sms-service"
 import { toast } from "sonner"
+import { SMSAccountStatus } from "@/components/sms-account-status"
 
 export default function TestSMSPage() {
   const [phoneNumber, setPhoneNumber] = useState("")
@@ -26,6 +27,11 @@ export default function TestSMSPage() {
     if (!SMSService.validatePhoneNumber(phoneNumber)) {
       toast.error("Please enter a valid phone number (e.g., +254712345678)")
       return
+    }
+
+    // Check if it's an African phone number
+    if (!SMSService.isAfricanPhoneNumber(phoneNumber)) {
+      toast.warning("This phone number may not be supported by Africa's Talking. Africa's Talking primarily supports African countries.")
     }
 
     setIsLoading(true)
@@ -108,6 +114,8 @@ School Administration`;
   return (
     <div className="container mx-auto p-8 max-w-4xl">
       <div className="space-y-6">
+        <SMSAccountStatus />
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -128,6 +136,9 @@ School Administration`;
                   />
                   <p className="text-xs text-gray-500">
                     Enter phone number with country code (e.g., +254712345678)
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Supported countries: Kenya (+254), Uganda (+256), Tanzania (+255), Nigeria (+234), South Africa (+27), and other African countries
                   </p>
                 </div>
 
