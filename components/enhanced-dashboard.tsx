@@ -329,23 +329,9 @@ export function EnhancedDashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Attendance Chart - Takes 2 columns */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Attendance Overview</CardTitle>
-                <CardDescription>Monthly attendance trends and patterns</CardDescription>
-              </div>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <AttendanceChart />
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-2">
+          <AttendanceChart />
+        </div>
 
         {/* Quick Actions */}
         <Card>
@@ -429,19 +415,13 @@ export function EnhancedDashboard() {
         </Card>
 
         {/* Pie Charts */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Attendance Status</CardTitle>
-            <CardDescription>Today's attendance breakdown</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AttendanceStatusPieChart />
-          </CardContent>
-        </Card>
+        <div>
+          <AttendanceStatusPieChart />
+        </div>
       </div>
 
       {/* Additional Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Notices Widget */}
         <Card>
           <CardHeader>
@@ -450,17 +430,6 @@ export function EnhancedDashboard() {
           </CardHeader>
           <CardContent>
             <NoticeWidget />
-          </CardContent>
-        </Card>
-
-        {/* Attendance by Grade */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Attendance by Grade</CardTitle>
-            <CardDescription>Grade-wise attendance distribution</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AttendancePieChart />
           </CardContent>
         </Card>
 
