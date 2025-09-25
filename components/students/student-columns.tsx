@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, Eye, Edit, Trash2, MessageSquare } from "lucide-react"
 import { format } from "date-fns"
 
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { SMSModal } from "@/components/sms-modal"
 
 import type { Student } from "./student-data-table"
 
@@ -155,6 +156,44 @@ export const columns: ColumnDef<Student>[] = [
       const date = new Date(row.getValue("enrollmentDate"))
       return <div className="text-sm">{format(date, "MMM dd, yyyy")}</div>
     },
+  },
+  {
+    id: "sms",
+    header: "SMS",
+    cell: ({ row }) => {
+      const student = row.original
+      
+      // Only show SMS button if parent phone is available
+      if (!student.parentPhone) {
+        return (
+          <div className="text-xs text-muted-foreground">
+            No parent phone
+          </div>
+        )
+      }
+
+      return (
+        <SMSModal
+          student={{
+            id: student.id,
+            firstName: student.firstName,
+            lastName: student.lastName,
+            parentName: student.parentName || 'Parent/Guardian',
+            parentPhone: student.parentPhone,
+            class: student.class
+          }}
+          teacherName="Teacher" // This should come from user context
+          trigger={
+            <Button variant="outline" size="sm">
+              <MessageSquare className="h-4 w-4 mr-1" />
+              SMS
+            </Button>
+          }
+        />
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     id: "actions",
