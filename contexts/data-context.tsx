@@ -143,7 +143,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addStudent = (studentData: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newStudent: Student = {
       ...studentData,
-      id: Date.now().toString(),
+      id: `student-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -186,7 +186,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addAttendanceRecord = (recordData: Omit<AttendanceRecord, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newRecord: AttendanceRecord = {
       ...recordData,
-      id: Date.now().toString(),
+      id: `attendance-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -212,7 +212,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addClass = (classData: Omit<Class, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newClass: Class = {
       ...classData,
-      id: Date.now().toString(),
+      id: `class-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -255,7 +255,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addUser = (userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newUser: User = {
       ...userData,
-      id: Date.now().toString(),
+      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -319,7 +319,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addActivityLog = (logData: Omit<ActivityLog, 'id' | 'createdAt'>) => {
     const newLog: ActivityLog = {
       ...logData,
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString()
     }
     setActivityLogs(prev => [newLog, ...prev].slice(0, 100)) // Keep only last 100 logs
@@ -329,7 +329,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addNotification = (notificationData: Omit<Notification, 'id' | 'createdAt'>) => {
     const newNotification: Notification = {
       ...notificationData,
-      id: Date.now().toString(),
+      id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString()
     }
     setNotifications(prev => [newNotification, ...prev])
@@ -347,7 +347,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addReport = (reportData: Omit<Report, 'id' | 'createdAt'>) => {
     const newReport: Report = {
       ...reportData,
-      id: Date.now().toString(),
+      id: `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString()
     }
     setReports(prev => [...prev, newReport])

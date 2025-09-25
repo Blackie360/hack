@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   LayoutDashboard,
   Users,
@@ -14,6 +15,7 @@ import {
   LogOut,
   School,
   MessageSquare,
+  X,
 } from "lucide-react"
 
 const navigationItems = [
@@ -49,17 +51,32 @@ const navigationItems = [
   },
 ]
 
-export function SidebarNav() {
+interface SidebarNavProps {
+  onClose?: () => void
+}
+
+export function SidebarNav({ onClose }: SidebarNavProps) {
   const pathname = usePathname()
+  const isMobile = useIsMobile()
 
   return (
     <div className="flex h-full w-64 flex-col bg-gray-50 border-r">
       {/* Logo Section */}
-      <div className="flex h-16 items-center px-6 border-b">
+      <div className="flex h-16 items-center justify-between px-6 border-b">
         <div className="flex items-center space-x-2">
           <School className="h-8 w-8 text-blue-600" />
           <span className="text-xl font-bold text-gray-900">DPM School</span>
         </div>
+        {isMobile && onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-8 w-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Navigation Items */}
@@ -67,7 +84,7 @@ export function SidebarNav() {
         {navigationItems.map((item) => {
           const isActive = pathname === item.href
           return (
-            <Link key={item.name} href={item.href}>
+            <Link key={item.name} href={item.href} onClick={onClose}>
               <Button
                 variant={isActive ? "default" : "ghost"}
                 className={cn(

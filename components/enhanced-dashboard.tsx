@@ -121,18 +121,18 @@ export function EnhancedDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Enhanced Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
             Welcome back! Here's what's happening at DPM School today.
           </p>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="text-right">
-            <p className="text-sm font-medium text-foreground">
+        <div className="flex flex-col space-y-2 md:flex-row md:items-center md:space-x-4 md:space-y-0">
+          <div className="text-left md:text-right">
+            <p className="text-xs md:text-sm font-medium text-foreground">
               {currentTime.toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 year: 'numeric', 
@@ -140,7 +140,7 @@ export function EnhancedDashboard() {
                 day: 'numeric' 
               })}
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs md:text-sm text-muted-foreground">
               {currentTime.toLocaleTimeString()}
             </p>
           </div>
@@ -177,21 +177,21 @@ export function EnhancedDashboard() {
       </div>
 
       {/* Enhanced Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {/* Total Students */}
         <Card className="relative overflow-hidden">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                <p className="text-3xl font-bold text-foreground">{stats.totalStudents}</p>
-                <div className="flex items-center mt-2">
-                  <ArrowUpRight className="h-4 w-4 text-green-500 mr-1" />
-                  <span className="text-sm text-green-500">+{stats.newEnrollments} this month</span>
+              <div className="flex-1">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Total Students</p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{stats.totalStudents}</p>
+                <div className="flex items-center mt-1 md:mt-2">
+                  <ArrowUpRight className="h-3 w-3 md:h-4 md:w-4 text-green-500 mr-1" />
+                  <span className="text-xs md:text-sm text-green-500">+{stats.newEnrollments} this month</span>
                 </div>
               </div>
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Users className="h-6 w-6 text-primary" />
+              <div className="p-2 md:p-3 bg-primary/10 rounded-xl">
+                <Users className="h-5 w-5 md:h-6 md:w-6 text-primary" />
               </div>
             </div>
           </CardContent>
@@ -199,17 +199,17 @@ export function EnhancedDashboard() {
 
         {/* Attendance Rate */}
         <Card className="relative overflow-hidden">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
-                <p className="text-3xl font-bold text-foreground">{stats.attendanceRate}%</p>
-                <div className="mt-2">
-                  <Progress value={stats.attendanceRate} className="h-2" />
+              <div className="flex-1">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Attendance Rate</p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{stats.attendanceRate}%</p>
+                <div className="mt-1 md:mt-2">
+                  <Progress value={stats.attendanceRate} className="h-1 md:h-2" />
                 </div>
               </div>
-              <div className="p-3 bg-green-500/10 rounded-xl">
-                <UserCheck className="h-6 w-6 text-green-500" />
+              <div className="p-2 md:p-3 bg-green-500/10 rounded-xl">
+                <UserCheck className="h-5 w-5 md:h-6 md:w-6 text-green-500" />
               </div>
             </div>
           </CardContent>
@@ -217,18 +217,18 @@ export function EnhancedDashboard() {
 
         {/* Active Classes */}
         <Card className="relative overflow-hidden">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Classes</p>
-                <p className="text-3xl font-bold text-foreground">{stats.activeClasses}</p>
-                <div className="flex items-center mt-2">
-                  <Clock className="h-4 w-4 text-blue-500 mr-1" />
-                  <span className="text-sm text-blue-500">Currently in session</span>
+              <div className="flex-1">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Active Classes</p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{stats.activeClasses}</p>
+                <div className="flex items-center mt-1 md:mt-2">
+                  <Clock className="h-3 w-3 md:h-4 md:w-4 text-blue-500 mr-1" />
+                  <span className="text-xs md:text-sm text-blue-500">Currently in session</span>
                 </div>
               </div>
-              <div className="p-3 bg-blue-500/10 rounded-xl">
-                <BookOpen className="h-6 w-6 text-blue-500" />
+              <div className="p-2 md:p-3 bg-blue-500/10 rounded-xl">
+                <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-blue-500" />
               </div>
             </div>
           </CardContent>
@@ -236,18 +236,18 @@ export function EnhancedDashboard() {
 
         {/* Average Grade */}
         <Card className="relative overflow-hidden">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Average Grade</p>
-                <p className="text-3xl font-bold text-foreground">{stats.averageGrade}%</p>
-                <div className="flex items-center mt-2">
-                  <TrendingUp className="h-4 w-4 text-purple-500 mr-1" />
-                  <span className="text-sm text-purple-500">+2.3% from last month</span>
+              <div className="flex-1">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Average Grade</p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{stats.averageGrade}%</p>
+                <div className="flex items-center mt-1 md:mt-2">
+                  <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-purple-500 mr-1" />
+                  <span className="text-xs md:text-sm text-purple-500">+2.3% from last month</span>
                 </div>
               </div>
-              <div className="p-3 bg-purple-500/10 rounded-xl">
-                <Award className="h-6 w-6 text-purple-500" />
+              <div className="p-2 md:p-3 bg-purple-500/10 rounded-xl">
+                <Award className="h-5 w-5 md:h-6 md:w-6 text-purple-500" />
               </div>
             </div>
           </CardContent>
@@ -255,7 +255,7 @@ export function EnhancedDashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Attendance Chart - Takes 2 columns */}
         <div className="lg:col-span-2">
           <AttendanceChart />
@@ -263,17 +263,17 @@ export function EnhancedDashboard() {
 
         {/* Quick Actions */}
         <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Frequently used functions</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Quick Actions</CardTitle>
+            <CardDescription className="text-sm">Frequently used functions</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 md:space-y-3">
             {quickActions.map((action) => (
               <HoverCard key={action.id}>
                 <HoverCardTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start h-auto p-4"
+                    className="w-full justify-start h-auto p-3 md:p-4"
                     onClick={() => {
                       // Use Next.js router for better navigation
                       if (typeof window !== 'undefined') {
@@ -281,13 +281,13 @@ export function EnhancedDashboard() {
                       }
                     }}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${action.color}`}>
-                        <action.icon className="h-4 w-4 text-white" />
+                    <div className="flex items-center space-x-2 md:space-x-3">
+                      <div className={`p-1.5 md:p-2 rounded-lg ${action.color}`}>
+                        <action.icon className="h-3 w-3 md:h-4 md:w-4 text-white" />
                       </div>
                       <div className="text-left">
-                        <p className="font-medium">{action.title}</p>
-                        <p className="text-sm text-muted-foreground">{action.description}</p>
+                        <p className="font-medium text-sm md:text-base">{action.title}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{action.description}</p>
                       </div>
                     </div>
                   </Button>
@@ -302,31 +302,31 @@ export function EnhancedDashboard() {
       </div>
 
       {/* Bottom Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Recent Activity */}
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
               <div>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest updates and actions</CardDescription>
+                <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <CardDescription className="text-sm">Latest updates and actions</CardDescription>
               </div>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="self-start md:self-auto">
                 <Eye className="h-4 w-4 mr-2" />
                 View All
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {activityLogs.slice(0, 5).map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                <div key={activity.id} className="flex items-start space-x-2 md:space-x-3 p-2 md:p-3 rounded-lg hover:bg-muted/50 transition-colors">
                   {getStatusIcon(activity.status)}
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.message}</p>
-                    <div className="flex items-center space-x-2 mt-1">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs md:text-sm font-medium truncate">{activity.message}</p>
+                    <div className="flex items-center space-x-1 md:space-x-2 mt-1">
                       <span className="text-xs text-muted-foreground">by {activity.user}</span>
-                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-xs text-muted-foreground hidden md:inline">•</span>
                       <span className="text-xs text-muted-foreground">{activity.time}</span>
                     </div>
                   </div>
@@ -338,9 +338,9 @@ export function EnhancedDashboard() {
 
         {/* Calendar Widget */}
         <Card>
-          <CardHeader>
-            <CardTitle>Calendar</CardTitle>
-            <CardDescription>Upcoming events and schedules</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Calendar</CardTitle>
+            <CardDescription className="text-sm">Upcoming events and schedules</CardDescription>
           </CardHeader>
           <CardContent>
             <CalendarWidget />
@@ -354,12 +354,12 @@ export function EnhancedDashboard() {
       </div>
 
       {/* Additional Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Notices Widget */}
         <Card>
-          <CardHeader>
-            <CardTitle>Notices</CardTitle>
-            <CardDescription>Important announcements</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Notices</CardTitle>
+            <CardDescription className="text-sm">Important announcements</CardDescription>
           </CardHeader>
           <CardContent>
             <NoticeWidget />
@@ -368,11 +368,11 @@ export function EnhancedDashboard() {
 
         {/* System Status */}
         <Card>
-          <CardHeader>
-            <CardTitle>System Status</CardTitle>
-            <CardDescription>Current system health</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">System Status</CardTitle>
+            <CardDescription className="text-sm">Current system health</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 md:space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
