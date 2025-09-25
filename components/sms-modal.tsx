@@ -130,13 +130,13 @@ export function SMSModal({ student, teacherName, trigger }: SMSModalProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-lg">
             <MessageSquare className="h-5 w-5" />
             Send SMS to Parent
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Send a message to {student.parentName || 'the parent'} about {student.firstName} {student.lastName}
           </DialogDescription>
         </DialogHeader>
@@ -144,12 +144,12 @@ export function SMSModal({ student, teacherName, trigger }: SMSModalProps) {
         <div className="space-y-4">
           {/* Student Info */}
           <div className="p-3 bg-muted rounded-lg">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
               <div>
-                <p className="font-medium">{student.firstName} {student.lastName}</p>
-                <p className="text-sm text-muted-foreground">Class: {student.class}</p>
+                <p className="font-medium text-sm md:text-base">{student.firstName} {student.lastName}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Class: {student.class}</p>
               </div>
-              <Badge variant="outline">{student.parentName}</Badge>
+              <Badge variant="outline" className="self-start md:self-auto">{student.parentName}</Badge>
             </div>
           </div>
 
@@ -222,13 +222,14 @@ export function SMSModal({ student, teacherName, trigger }: SMSModalProps) {
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+        <DialogFooter className="flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          <Button variant="outline" onClick={() => setOpen(false)} className="w-full md:w-auto">
             Cancel
           </Button>
           <Button 
             onClick={handleSendSMS} 
             disabled={loading || !customMessage.trim() || !phoneNumber.trim()}
+            className="w-full md:w-auto"
           >
             {loading ? (
               <>
