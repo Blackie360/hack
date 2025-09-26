@@ -2,9 +2,13 @@ import AfricasTalking from 'africastalking';
 
 // Initialize Africa's Talking with your credentials
 const credentials = {
-  apiKey: 'atsk_39b806b4bfd06db95ce7b18698a9fda2ef2fe1630c2dff48859b4d8bd847658ae7a4a5ae',
-  username: 'blackie',
+  apiKey: process.env.AFRICASTALKING_API_KEY || 'atsk_e0b64ba1cf5620b28477cb5893e635a331c589a2b6fe5b89ad6c6c08cc7832f99fc771d7',
+  username: process.env.AFRICASTALKING_USERNAME || 'Chegeh',
 };
+
+// Debug: Log credentials being used (without exposing the full API key)
+console.log('SMS Service initialized with username:', credentials.username);
+console.log('API Key (first 10 chars):', credentials.apiKey.substring(0, 10) + '...');
 
 const africastalking = AfricasTalking(credentials);
 const sms = africastalking.SMS;
