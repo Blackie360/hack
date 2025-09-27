@@ -6,6 +6,10 @@ const credentials = {
   username: process.env.AFRICASTALKING_USERNAME || 'Chegeh',
 };
 
+// Debug: Log credentials being used (without exposing the full API key)
+console.log('SMS Service initialized with username:', credentials.username);
+console.log('API Key (first 10 chars):', credentials.apiKey.substring(0, 10) + '...');
+
 const africastalking = AfricasTalking(credentials);
 const sms = africastalking.SMS;
 
