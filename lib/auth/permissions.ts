@@ -10,15 +10,17 @@ const ac = createAccessControl(statement);
 
 const member = ac.newRole({
     project: ["create"],
+    organization: ["invite"],
 });
 
 const admin = ac.newRole({
     project: ["create", "update"],
+    organization: ["invite", "update"],
 });
 
 const owner = ac.newRole({
     project: ["create", "update", "delete"],
-    organization: ["update", "delete"],
+    organization: ["invite", "update", "delete"],
 });
 
 export { ac, admin, member, owner, statement };

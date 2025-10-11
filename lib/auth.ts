@@ -9,16 +9,13 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { lastLoginMethod, organization } from "better-auth/plugins";
-import { Resend } from "resend";
-import { admin, member, owner } from "./auth/permissions";
-
-const resend = new Resend(process.env.RESEND_API_KEY as string);
+import { sendEmail } from "./email";
+import { ac, admin, member, owner } from "./auth/permissions";
 
 export const auth = betterAuth({
     emailVerification: {
         sendVerificationEmail: async ({ user, url }) => {
-            resend.emails.send({
-                from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
+            await sendEmail({
                 to: user.email,
                 subject: "Verify your email",
                 react: VerifyEmail({ username: user.name, verifyUrl: url }),
@@ -31,12 +28,15 @@ export const auth = betterAuth({
             clientId: process.env.GOOGLE_CLIENT_ID as string,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
         },
+        github: {
+            clientId: process.env.GITHUB_CLIENT_ID as string,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+        },
     },
     emailAndPassword: {
         enabled: true,
         sendResetPassword: async ({ user, url }) => {
-            resend.emails.send({
-                from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
+            await sendEmail({
                 to: user.email,
                 subject: "Reset your password",
                 react: ForgotPasswordEmail({ username: user.name, resetUrl: url, userEmail: user.email }),
@@ -64,11 +64,11 @@ export const auth = betterAuth({
         schema,
     }),
     plugins: [organization({
+        ac,
         async sendInvitationEmail(data) {
-            const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/accept-invitation/${data.id}`
+            const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invitation/${data.id}`
 
-            resend.emails.send({
-                from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
+            await sendEmail({
                 to: data.email,
                 subject: "You've been invited to join our organization",
                 react: OrganizationInvitationEmail({
@@ -84,6 +84,10 @@ export const auth = betterAuth({
             owner,
             admin,
             member
-        }
+        },
+        // Allow inviting users who don't exist yet
+        requireEmailVerificationOnInvitation: false,
+        invitationExpiresIn: 48 * 60 * 60, // 48 hours
+        membershipLimit: 100
     }), lastLoginMethod(), nextCookies()]
 });

@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 
 import { z } from "zod";
 
@@ -27,6 +28,7 @@ const formSchema = z.object({
 
 export function CreateOrganizationForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,6 +47,10 @@ export function CreateOrganizationForm() {
       });
 
       toast.success("Organization created successfully");
+      
+      // Refresh to get latest data and redirect to the newly created organization page
+      router.refresh();
+      router.push(`/dashboard/organization/${values.slug}`);
     } catch (error) {
       console.error(error);
       toast.error("Failed to create organization");

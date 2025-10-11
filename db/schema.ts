@@ -57,12 +57,6 @@ export const organization = pgTable("organization", {
     metadata: text('metadata')
 });
 
-export const organizationRelations = relations(organization, ({ many }) => ({
-    members: many(member)
-}));
-
-export type Organization = typeof organization.$inferSelect;
-
 export const role = pgEnum("role", ["member", "admin", "owner"]);
 
 export type Role = (typeof role.enumValues)[number];
@@ -75,16 +69,7 @@ export const member = pgTable("member", {
     createdAt: timestamp('created_at').notNull()
 });
 
-export const memberRelations = relations(member, ({ one }) => ({
-    organization: one(organization, {
-        fields: [member.organizationId],
-        references: [organization.id]
-    }),
-    user: one(user, {
-        fields: [member.userId],
-        references: [user.id]
-    })
-}));
+export type Organization = typeof organization.$inferSelect;
 
 export type Member = typeof member.$inferSelect & {
     user: typeof user.$inferSelect;
@@ -96,10 +81,54 @@ export const invitation = pgTable("invitation", {
     id: text('id').primaryKey(),
     organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
     email: text('email').notNull(),
-    role: text('role'),
+    role: role('role').default("member").notNull(),
     status: text('status').default("pending").notNull(),
     expiresAt: timestamp('expires_at').notNull(),
     inviterId: text('inviter_id').notNull().references(() => user.id, { onDelete: 'cascade' })
 });
 
-export const schema = { user, session, account, verification, organization, member, invitation, organizationRelations, memberRelations };
+// Relations
+export const organizationRelations = relations(organization, ({ many }) => ({
+    members: many(member),
+    invitations: many(invitation)
+}));
+
+export const memberRelations = relations(member, ({ one }) => ({
+    organization: one(organization, {
+        fields: [member.organizationId],
+        references: [organization.id]
+    }),
+    user: one(user, {
+        fields: [member.userId],
+        references: [user.id]
+    })
+}));
+
+export const userRelations = relations(user, ({ many }) => ({
+    memberships: many(member)
+}));
+
+export const invitationRelations = relations(invitation, ({ one }) => ({
+    organization: one(organization, {
+        fields: [invitation.organizationId],
+        references: [organization.id]
+    }),
+    inviter: one(user, {
+        fields: [invitation.inviterId],
+        references: [user.id]
+    })
+}));
+
+export const schema = { 
+    user, 
+    session, 
+    account, 
+    verification, 
+    organization, 
+    member, 
+    invitation, 
+    organizationRelations, 
+    memberRelations,
+    userRelations,
+    invitationRelations
+};
