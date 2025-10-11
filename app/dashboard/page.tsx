@@ -1,3 +1,16 @@
+import UnlockGate from "@/components/security/unlock-gate";
+
+export default function DashboardHome() {
+  return (
+    <UnlockGate>
+      <div className="container mx-auto px-4 py-12">
+        <h1 className="text-2xl font-semibold mb-2">Dashboard</h1>
+        <p className="text-muted-foreground">Welcome back. Select an organization to manage your secrets.</p>
+      </div>
+    </UnlockGate>
+  );
+}
+
 import { CreateOrganizationForm } from "@/components/forms/create-organization-form";
 import { Button } from "@/components/ui/button";
 import {

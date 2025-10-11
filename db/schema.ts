@@ -119,6 +119,134 @@ export const invitationRelations = relations(invitation, ({ one }) => ({
     })
 }));
 
+// ----------------------
+// VaultSync E2EE Tables
+// ----------------------
+
+export const project = pgTable("project", {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+export const environment = pgTable("environment", {
+    id: text('id').primaryKey(),
+    projectId: text('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(), // e.g. dev, staging, prod
+    slug: text('slug').notNull(),
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+export const secret = pgTable("secret", {
+    id: text('id').primaryKey(),
+    projectId: text('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+    environmentId: text('environment_id').notNull().references(() => environment.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    ciphertext: text('ciphertext').notNull(), // base64 encoded
+    nonce: text('nonce').notNull(), // base64 encoded
+    aad: text('aad'), // base64/json string
+    version: text('version').notNull(),
+    expiresAt: timestamp('expires_at'),
+    createdBy: text('created_by').notNull().references(() => user.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+export const secretVersion = pgTable("secret_version", {
+    id: text('id').primaryKey(),
+    secretId: text('secret_id').notNull().references(() => secret.id, { onDelete: 'cascade' }),
+    version: text('version').notNull(),
+    ciphertext: text('ciphertext').notNull(),
+    nonce: text('nonce').notNull(),
+    aad: text('aad'),
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+// Each member gets a wrapped copy of the organization's symmetric key
+export const orgKeyWrap = pgTable("org_key_wrap", {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+    memberId: text('member_id').notNull().references(() => member.id, { onDelete: 'cascade' }),
+    wrappedKey: text('wrapped_key').notNull(), // base64
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+// Optional recovery using passphrase-derived KEK, owned by organization
+export const orgRecovery = pgTable("org_recovery", {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+    wrappedKeyByKEK: text('wrapped_key_by_kek').notNull(), // base64
+    params: text('params').notNull(), // argon2 params JSON
+    updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+export const auditLog = pgTable("audit_log", {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+    actorId: text('actor_id').notNull().references(() => user.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    targetType: text('target_type').notNull(),
+    targetId: text('target_id'),
+    meta: text('meta'), // JSON string
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+// Relations
+export const projectRelations = relations(project, ({ one, many }) => ({
+    organization: one(organization, {
+        fields: [project.orgId],
+        references: [organization.id]
+    }),
+    environments: many(environment),
+    secrets: many(secret)
+}));
+
+export const environmentRelations = relations(environment, ({ one, many }) => ({
+    project: one(project, {
+        fields: [environment.projectId],
+        references: [project.id]
+    }),
+    secrets: many(secret)
+}));
+
+export const secretRelations = relations(secret, ({ one, many }) => ({
+    project: one(project, {
+        fields: [secret.projectId],
+        references: [project.id]
+    }),
+    environment: one(environment, {
+        fields: [secret.environmentId],
+        references: [environment.id]
+    }),
+    versions: many(secretVersion)
+}));
+
+export const secretVersionRelations = relations(secretVersion, ({ one }) => ({
+    secret: one(secret, {
+        fields: [secretVersion.secretId],
+        references: [secret.id]
+    })
+}));
+
+export const orgKeyWrapRelations = relations(orgKeyWrap, ({ one }) => ({
+    org: one(organization, {
+        fields: [orgKeyWrap.orgId],
+        references: [organization.id]
+    }),
+    member: one(member, {
+        fields: [orgKeyWrap.memberId],
+        references: [member.id]
+    })
+}));
+
+export const orgRecoveryRelations = relations(orgRecovery, ({ one }) => ({
+    org: one(organization, {
+        fields: [orgRecovery.orgId],
+        references: [organization.id]
+    })
+}));
+
 export const schema = { 
     user, 
     session, 
@@ -130,5 +258,19 @@ export const schema = {
     organizationRelations, 
     memberRelations,
     userRelations,
-    invitationRelations
+    invitationRelations,
+    // VaultSync
+    project,
+    environment,
+    secret,
+    secretVersion,
+    orgKeyWrap,
+    orgRecovery,
+    auditLog,
+    projectRelations,
+    environmentRelations,
+    secretRelations,
+    secretVersionRelations,
+    orgKeyWrapRelations,
+    orgRecoveryRelations
 };

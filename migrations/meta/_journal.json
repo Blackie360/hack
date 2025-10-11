@@ -15,6 +15,13 @@
       "when": 1760178023749,
       "tag": "0001_flippant_quentin_quire",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1760181989877,
+      "tag": "0002_premium_fallen_one",
+      "breakpoints": true
     }
   ]
 }
