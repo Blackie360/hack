@@ -98,7 +98,7 @@ export async function POST(
     // Set this organization as the active organization in the session
     await db.update(session)
       .set({ activeOrganizationId: invitationRecord.organizationId })
-      .where(eq(session.id, session.id));
+      .where(eq(session.userId, session.user.id));
 
     return NextResponse.json({
       success: true,

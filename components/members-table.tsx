@@ -9,12 +9,24 @@ import {
 } from "@/components/ui/table";
 import { Member } from "@/db/schema";
 import MembersTableAction from "./members-table-action";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 interface MembersTableProps {
   members: Member[];
 }
 
 export default function MembersTable({ members }: MembersTableProps) {
+  if (!members || members.length === 0) {
+    return (
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon" />
+          <EmptyTitle>No members yet</EmptyTitle>
+          <EmptyDescription>Invite your team to collaborate on secrets.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
   return (
     <Table>
       <TableCaption>A list of organization members.</TableCaption>

@@ -13,7 +13,10 @@ export async function GET(request: Request) {
   const wrap = await db.query.orgKeyWrap.findFirst({
     where: and(eq(orgKeyWrap.orgId, orgId), eq(orgKeyWrap.memberId, rows[0].id)),
   });
-  return NextResponse.json({ wrapped: wrap ? { payloadB64: wrap.wrappedKey } : null });
+  return NextResponse.json({
+    wrapped: wrap ? { payloadB64: wrap.wrappedKey } : null,
+    member: { memberId: rows[0].id, orgId },
+  });
 }
 
 export async function POST(request: Request) {

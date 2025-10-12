@@ -65,6 +65,14 @@ export const auth = betterAuth({
     }),
     plugins: [organization({
         ac,
+        async afterOrganizationCreate(data) {
+            // ensure the creating user has an activeOrganizationId set to this org
+            try {
+                await db.update(schema.session)
+                    .set({ activeOrganizationId: data.organization.id })
+                    .where(schema.session.userId.eq(data.user.id));
+            } catch {}
+        },
         async sendInvitationEmail(data) {
             const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invitation/${data.id}`
 

@@ -247,6 +247,67 @@ export const orgRecoveryRelations = relations(orgRecovery, ({ one }) => ({
     })
 }));
 
+// Device public keys per member (for wrapping org keys)
+export const memberDeviceKey = pgTable("member_device_key", {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+    memberId: text('member_id').notNull().references(() => member.id, { onDelete: 'cascade' }),
+    userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+    publicKeyB64: text('public_key_b64').notNull(),
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+// Project-level membership (limits visibility to specific projects for non-owners)
+export const projectMember = pgTable("project_member", {
+    id: text('id').primaryKey(),
+    projectId: text('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+    memberId: text('member_id').notNull().references(() => member.id, { onDelete: 'cascade' }),
+    role: role('role').default("member").notNull(),
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+export const projectMemberRelations = relations(projectMember, ({ one }) => ({
+    project: one(project, { fields: [projectMember.projectId], references: [project.id] }),
+    member: one(member, { fields: [projectMember.memberId], references: [member.id] }),
+}));
+
+// Rotation job tracking (progressive background with quorum approvals)
+export const rotationJobStatus = pgEnum("rotation_status", ["pending", "active", "paused", "completed", "rolled_back", "failed"]);
+
+export const rotationJob = pgTable("rotation_job", {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+    initiatorId: text('initiator_id').notNull().references(() => user.id, { onDelete: 'set null' }),
+    status: rotationJobStatus('status').notNull().default("pending"),
+    requiredApprovals: text('required_approvals').notNull(), // JSON string: { owners: N, admins: M }
+    approvalsCount: text('approvals_count').notNull().default('0'),
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+    updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+export const rotationApproval = pgTable("rotation_approval", {
+    id: text('id').primaryKey(),
+    jobId: text('job_id').notNull().references(() => rotationJob.id, { onDelete: 'cascade' }),
+    memberId: text('member_id').notNull().references(() => member.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+export const rotationProgress = pgTable("rotation_progress", {
+    id: text('id').primaryKey(),
+    jobId: text('job_id').notNull().references(() => rotationJob.id, { onDelete: 'cascade' }),
+    processedCount: text('processed_count').notNull().default('0'),
+    totalCount: text('total_count').notNull().default('0'),
+    lastCursor: text('last_cursor'),
+    updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+});
+
+export const rotationKeyWrap = pgTable("rotation_key_wrap", {
+    id: text('id').primaryKey(),
+    jobId: text('job_id').notNull().references(() => rotationJob.id, { onDelete: 'cascade' }),
+    memberId: text('member_id').notNull().references(() => member.id, { onDelete: 'cascade' }),
+    wrappedKey: text('wrapped_key').notNull(),
+});
+
 export const schema = { 
     user, 
     session, 
@@ -266,11 +327,18 @@ export const schema = {
     secretVersion,
     orgKeyWrap,
     orgRecovery,
+    memberDeviceKey,
+    projectMember,
+    rotationJob,
+    rotationApproval,
+    rotationProgress,
+    rotationKeyWrap,
     auditLog,
     projectRelations,
     environmentRelations,
     secretRelations,
     secretVersionRelations,
     orgKeyWrapRelations,
-    orgRecoveryRelations
+    orgRecoveryRelations,
+    projectMemberRelations
 };
