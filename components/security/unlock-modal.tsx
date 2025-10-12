@@ -33,7 +33,17 @@ export default function UnlockModal({ isOpen, onUnlocked, wrappedOrgKeyForMember
         return;
       }
       if (memberCtx) {
-        // Bootstrap new org key for member
+        // Try to fetch owner's wrapped key for re-wrapping
+        const ownerRes = await fetch(`/api/org-keys?fetchOwnerKey=true&orgId=${memberCtx.orgId}`, { cache: "no-store" });
+        const ownerData = await ownerRes.json();
+        
+        if (ownerData?.ownerWrappedKey) {
+          // Owner has a key → We need the owner to share it via another mechanism (not implemented yet)
+          // For now, show an error
+          throw new Error("Please ask the organization owner to unlock first, then re-onboard members.");
+        }
+
+        // No one has org key yet → bootstrap new one (owner scenario)
         const orgKey = crypto.getRandomValues(new Uint8Array(32));
         const { payloadB64 } = sealedBoxEncrypt(device.publicKeyB64, orgKey);
         await fetch("/api/org-keys", {

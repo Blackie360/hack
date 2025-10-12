@@ -94,13 +94,13 @@ export function InviteMemberForm({ organizationId }: InviteMemberFormProps) {
   }
 
   return (
-    <div className="border rounded-lg p-6 bg-card">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="border rounded-lg p-4 md:p-6 bg-card">
+      <div className="flex items-center gap-2 mb-3 md:mb-4">
         <UserPlus className="h-5 w-5" />
-        <h3 className="text-lg font-semibold">Invite New Member</h3>
+        <h3 className="text-base md:text-lg font-semibold">Invite New Member</h3>
       </div>
       
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
         Send an invitation to join your organization. They'll receive an email with a link to accept.
       </p>
 

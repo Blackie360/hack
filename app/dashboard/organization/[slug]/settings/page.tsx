@@ -8,17 +8,36 @@ import { getOrgKey } from "@/lib/crypto/storage";
 import { deriveKek } from "@/lib/crypto/argon2";
 import { encryptAesGcm } from "@/lib/crypto/secret";
 import RotateKeysDialog from "@/components/security/rotate-keys-dialog";
+import OnboardMembers from "@/components/security/onboard-members";
+
+type Member = {
+  id: string;
+  email: string;
+  role: string;
+  hasWrappedKey: boolean;
+};
 
 export default function SettingsPage({ params }: { params: Promise<{ slug: string }> }) {
   const [hasRecovery, setHasRecovery] = useState<boolean>(false);
   const [pass, setPass] = useState("");
   const [busy, setBusy] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [orgId, setOrgId] = useState("");
 
   useEffect(() => {
     (async () => {
+      // Fetch recovery status
       const res = await fetch('/api/org-recovery');
       const data = await res.json();
       setHasRecovery(!!data?.recovery);
+
+      // Fetch members and their wrapped key status
+      const membersRes = await fetch('/api/members-with-keys');
+      const membersData = await membersRes.json();
+      if (membersData.members) {
+        setMembers(membersData.members);
+        setOrgId(membersData.orgId);
+      }
     })();
   }, []);
 
@@ -46,6 +65,8 @@ export default function SettingsPage({ params }: { params: Promise<{ slug: strin
 
   return (
     <div className="container mx-auto px-4 py-10 space-y-6">
+      <OnboardMembers members={members} orgId={orgId} />
+      
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-2">Recovery Passphrase</h2>
         {hasRecovery ? (

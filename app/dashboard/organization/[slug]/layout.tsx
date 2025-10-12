@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import CommandMenu from "@/components/command-menu";
+import { MobileNav } from "@/components/mobile-nav";
 import {
   SidebarProvider,
   Sidebar,
@@ -14,11 +15,14 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 
-export default function OrgLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
+export default async function OrgLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  
   return (
     <SidebarProvider>
-      <div className="flex min-h-[calc(100vh-4rem)] gap-4 px-4 py-6">
-        <Sidebar>
+      <div className="flex min-h-[calc(100vh-4rem)] md:gap-4 md:px-4 md:py-6">
+        {/* Desktop Sidebar - hidden on mobile */}
+        <Sidebar className="hidden md:flex">
           <SidebarHeader>
             <div className="text-sm font-semibold">Organization</div>
           </SidebarHeader>
@@ -26,15 +30,22 @@ export default function OrgLayout({ children, params }: { children: React.ReactN
             <OrgSidebar params={params} />
           </SidebarContent>
         </Sidebar>
-        <SidebarInset>
-          <div className="flex items-center justify-between">
+        
+        <SidebarInset className="w-full">
+          {/* Command Menu - hidden on mobile */}
+          <div className="hidden md:flex items-center justify-between">
             <CommandMenu />
           </div>
-          <div className="mt-4">
+          
+          {/* Content with mobile padding and bottom nav spacing */}
+          <div className="px-4 py-4 md:mt-4 pb-20 md:pb-4">
             {children}
           </div>
         </SidebarInset>
       </div>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileNav slug={slug} />
     </SidebarProvider>
   );
 }
