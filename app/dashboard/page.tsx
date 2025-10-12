@@ -17,10 +17,10 @@ export default async function Dashboard() {
 
   return (
     <UnlockGate>
-      <div className="flex flex-col gap-2 items-center justify-center h-screen">
+      <div className="flex flex-col gap-4 items-center justify-center min-h-screen px-4 py-20">
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">Create Organization</Button>
+            <Button variant="outline" className="w-full sm:w-auto">Create Organization</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -33,10 +33,10 @@ export default async function Dashboard() {
           </DialogContent>
         </Dialog>
 
-        <div className="flex flex-col gap-2">
-          <h2 className="text-2xl font-bold">Organizations</h2>
+        <div className="flex flex-col gap-3 w-full max-w-md">
+          <h2 className="text-xl md:text-2xl font-bold text-center">Organizations</h2>
           {organizations.map((organization) => (
-            <Button variant="outline" key={organization.id} asChild>
+            <Button variant="outline" key={organization.id} asChild className="w-full">
               <Link href={`/dashboard/organization/${organization.slug}`}>
                 {organization.name}
               </Link>

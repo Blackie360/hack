@@ -35,20 +35,20 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
   }
 
   return (
-    <div className="space-y-6 py-4">
-      <h1 className="text-2xl font-semibold">Projects</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-4 md:space-y-6 py-2 md:py-4">
+      <h1 className="text-xl md:text-2xl font-semibold">Projects</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
         {projects.map((p) => {
           const assigned = (projectIdToAssignments.get(p.id) as any[]) ?? [];
           return (
             <Card key={p.id} className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">{p.name}</div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex-1">
+                  <div className="font-medium text-sm md:text-base">{p.name}</div>
                   <div className="text-xs text-muted-foreground">{p.slug}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">{assigned.length} members</Badge>
+                  <Badge variant="outline" className="text-xs">{assigned.length} member{assigned.length !== 1 ? 's' : ''}</Badge>
                 </div>
               </div>
               <div className="space-y-2">
@@ -58,8 +58,8 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
                     <div className="text-xs text-muted-foreground">No members assigned</div>
                   ) : (
                     assigned.map(a => (
-                      <div key={a.id} className="text-xs rounded-md border px-2 py-1">
-                        {a.member?.user?.name ?? "Unknown"} ({a.member?.role ?? "member"})
+                      <div key={a.id} className="text-xs rounded-md border px-2 py-1 bg-muted/30">
+                        {a.member?.user?.name ?? "Unknown"} <span className="text-muted-foreground">({a.member?.role ?? "member"})</span>
                       </div>
                     ))
                   )}

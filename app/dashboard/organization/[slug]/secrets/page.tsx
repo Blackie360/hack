@@ -25,7 +25,7 @@ export default async function SecretsPage({ params, searchParams }: { params: Pr
 
   if (!selectedProjectId) {
     return (
-      <div className="container mx-auto px-4 py-10">
+      <div className="px-4 py-6 md:py-10">
         <Empty className="border">
           <EmptyHeader>
             <EmptyMedia variant="icon" />
@@ -41,13 +41,16 @@ export default async function SecretsPage({ params, searchParams }: { params: Pr
 
   return (
     <UnlockGate>
-      <div className="container mx-auto px-4 py-10 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Secrets</h1>
-          <div className="flex gap-3 items-center">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-xl md:text-2xl font-semibold">Secrets</h1>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
             <ProjectSelector slug={slug} projects={projects} selectedProjectId={selectedProjectId} />
-            <Button variant="outline" asChild>
-              <Link href={`/dashboard/organization/${slug}/projects#${selectedProjectId}`}>Assign Members</Link>
+            <Button variant="outline" asChild size="sm" className="w-full sm:w-auto">
+              <Link href={`/dashboard/organization/${slug}/projects#${selectedProjectId}`}>
+                <span className="hidden sm:inline">Assign Members</span>
+                <span className="sm:hidden">Members</span>
+              </Link>
             </Button>
           </div>
         </div>
