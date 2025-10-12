@@ -15,25 +15,42 @@ export async function getAccessibleProjects(orgId: string) {
   });
   if (!mem) return [];
 
+  // Owner sees all projects
   if (mem.role === "owner") {
     return await db.query.project.findMany({ where: eq(project.orgId, orgId) });
   }
 
-  // Use a plain select to avoid lateral joins that can fail under some drivers
-  let pms: Array<{ projectId: string }> = [];
+  // For admins/members: get all projects in org
+  const allProjects = await db.query.project.findMany({ where: eq(project.orgId, orgId) });
+  if (allProjects.length === 0) return [];
+
+  // Check which projects have assignments
+  const projectIds = allProjects.map((p) => p.id);
+  let allAssignments: Array<{ projectId: string; memberId: string }> = [];
   try {
-    pms = await db
-      .select({ projectId: projectMember.projectId })
+    allAssignments = await db
+      .select({ projectId: projectMember.projectId, memberId: projectMember.memberId })
       .from(projectMember)
-      .where(eq(projectMember.memberId, mem.id));
+      .where(inArray(projectMember.projectId, projectIds));
   } catch (e) {
-    // If RLS blocks, return empty instead of throwing
-    return [];
+    // If RLS blocks, assume no assignments
   }
-  if (pms.length === 0) return [];
-  const projIds = pms.map((p) => p.projectId);
-  const projs = await db.query.project.findMany({ where: inArray(project.id, projIds) });
-  return projs;
+
+  // Build map of projectId → assigned member IDs
+  const projectAssignments = new Map<string, Set<string>>();
+  for (const a of allAssignments) {
+    if (!projectAssignments.has(a.projectId)) projectAssignments.set(a.projectId, new Set());
+    projectAssignments.get(a.projectId)!.add(a.memberId);
+  }
+
+  // Filter: if project has no assignments, all org members can access; if it has assignments, only assigned members
+  const accessible = allProjects.filter((p) => {
+    const assigned = projectAssignments.get(p.id);
+    if (!assigned || assigned.size === 0) return true; // no assignments = open to all org members
+    return assigned.has(mem.id); // has assignments = only assigned members
+  });
+
+  return accessible;
 }
 
 

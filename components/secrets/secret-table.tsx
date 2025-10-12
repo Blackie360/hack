@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getOrgKey } from "@/lib/crypto/storage";
 import { decryptAesGcm, encryptAesGcm } from "@/lib/crypto/secret";
 import { toast } from "sonner";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, Copy, Download } from "lucide-react";
 
 type SecretRow = {
   id: string;
@@ -32,6 +32,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
   const [editSecret, setEditSecret] = useState<{ id: string; name: string; value: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [decrypting, setDecrypting] = useState(false);
   const unlocked = useMemo(() => !!getOrgKey(), []);
   const canWrite = userRole === "owner" || userRole === "admin";
 
@@ -40,24 +41,48 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
   }, [projectId, environmentId]);
 
   async function loadSecrets() {
-    const url = `/api/secrets?projectId=${encodeURIComponent(projectId)}&environmentId=${encodeURIComponent(environmentId)}`;
-    const res = await fetch(url, { cache: "no-store" });
-    const data = await res.json();
-    setRows(data.secrets ?? []);
-    setSelected(new Set());
+    try {
+      const url = `/api/secrets?projectId=${encodeURIComponent(projectId)}&environmentId=${encodeURIComponent(environmentId)}`;
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Failed to load secrets:", res.status, text);
+        toast.error("Failed to load secrets");
+        return;
+      }
+      const contentType = res.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        console.error("Non-JSON response:", await res.text());
+        toast.error("Failed to load secrets");
+        return;
+      }
+      const data = await res.json();
+      setRows(data.secrets ?? []);
+      setSelected(new Set());
+    } catch (e) {
+      console.error("loadSecrets error:", e);
+      toast.error("Failed to load secrets");
+    }
   }
 
   async function handleView(row: SecretRow) {
     const ok = getOrgKey();
+    console.log("handleView - org key:", ok ? "present" : "missing");
     if (!ok) { toast.error("Unlock workspace first"); return; }
     try {
+      console.log("Decrypting secret:", row.name, {
+        ciphertextLength: row.ciphertext.length,
+        nonceLength: row.nonce.length,
+        hasAad: !!row.aad
+      });
       const ct = Uint8Array.from(atob(row.ciphertext), c => c.charCodeAt(0));
       const iv = Uint8Array.from(atob(row.nonce), c => c.charCodeAt(0));
       const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
       const plaintext = await decryptAesGcm(ok, ct, iv, aad);
       setViewSecret({ name: row.name, value: new TextDecoder().decode(plaintext), created: new Date(row.createdAt).toLocaleString() });
     } catch (e) {
-      toast.error("Failed to decrypt secret");
+      console.error("Decryption error:", e);
+      toast.error("Failed to decrypt secret. The encryption key may have changed.");
     }
   }
 
@@ -142,19 +167,60 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
     else setSelected(new Set(rows.map((r) => r.id)));
   }
 
+  async function copyAsEnv(ids: string[]) {
+    const ok = getOrgKey();
+    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (ids.length === 0) return;
+    setDecrypting(true);
+    try {
+      const toCopy = rows.filter((r) => ids.includes(r.id));
+      const decrypted: Array<{ name: string; value: string }> = [];
+      for (const row of toCopy) {
+        try {
+          const ct = Uint8Array.from(atob(row.ciphertext), c => c.charCodeAt(0));
+          const iv = Uint8Array.from(atob(row.nonce), c => c.charCodeAt(0));
+          const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
+          const plaintext = await decryptAesGcm(ok, ct, iv, aad);
+          decrypted.push({ name: row.name, value: new TextDecoder().decode(plaintext) });
+        } catch (e) {
+          console.error("Failed to decrypt", row.name, e);
+        }
+      }
+      const envText = decrypted.map((d) => `${d.name}=${d.value}`).join("\n");
+      await navigator.clipboard.writeText(envText);
+      toast.success(`Copied ${decrypted.length} secret${decrypted.length > 1 ? "s" : ""} as .env format`);
+    } catch (e) {
+      toast.error("Failed to copy secrets");
+    } finally {
+      setDecrypting(false);
+    }
+  }
+
   return (
     <>
       <Card className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold">Secrets</h3>
-            {selected.size > 0 && canWrite && (
-              <Button size="sm" variant="destructive" onClick={() => handleDelete(Array.from(selected))}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete {selected.size}
-              </Button>
+            {selected.size > 0 && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => copyAsEnv(Array.from(selected))} loading={decrypting} loadingText="Decrypting...">
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy {selected.size} as .env
+                </Button>
+                {canWrite && (
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(Array.from(selected))}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete {selected.size}
+                  </Button>
+                )}
+              </>
             )}
           </div>
+          <Button size="sm" variant="outline" onClick={() => copyAsEnv(rows.map(r => r.id))} loading={decrypting} loadingText="Decrypting..." disabled={rows.length === 0}>
+            <Download className="mr-2 h-4 w-4" />
+            Export All
+          </Button>
         </div>
         {rows.length === 0 ? (
           <Empty className="border">
@@ -168,11 +234,9 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
           <Table>
             <TableHeader>
               <TableRow>
-                {canWrite && (
-                  <TableHead className="w-12">
-                    <Checkbox checked={selected.size === rows.length} onCheckedChange={toggleSelectAll} />
-                  </TableHead>
-                )}
+                <TableHead className="w-12">
+                  <Checkbox checked={selected.size === rows.length} onCheckedChange={toggleSelectAll} />
+                </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Version</TableHead>
                 <TableHead>Created</TableHead>
@@ -182,11 +246,9 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
             <TableBody>
               {rows.map((r) => (
                 <TableRow key={r.id}>
-                  {canWrite && (
-                    <TableCell>
-                      <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} />
-                    </TableCell>
-                  )}
+                  <TableCell>
+                    <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} />
+                  </TableCell>
                   <TableCell className="font-mono text-sm">{r.name}</TableCell>
                   <TableCell>{r.version}</TableCell>
                   <TableCell>{new Date(r.createdAt).toLocaleDateString()}</TableCell>
@@ -194,6 +256,9 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
                     <div className="flex gap-1">
                       <Button size="sm" variant="ghost" onClick={() => handleView(r)}>
                         <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => copyAsEnv([r.id])}>
+                        <Copy className="h-4 w-4" />
                       </Button>
                       {canWrite && (
                         <>
@@ -231,6 +296,18 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
             <div className="text-xs text-muted-foreground">Created: {viewSecret?.created}</div>
           </div>
           <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (viewSecret) {
+                  await navigator.clipboard.writeText(`${viewSecret.name}=${viewSecret.value}`);
+                  toast.success("Copied to clipboard");
+                }
+              }}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Copy as .env
+            </Button>
             <Button variant="outline" onClick={() => setViewSecret(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
