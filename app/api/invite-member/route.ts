@@ -18,9 +18,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
-    const body = await request.json();
-    const { email, role, organizationId } = body;
+    // Parse request body (tolerate missing/invalid JSON)
+    let email: string | undefined;
+    let role: "member" | "admin" | undefined;
+    let organizationId: string | undefined;
+    try {
+      const body = await request.json();
+      email = body?.email;
+      role = body?.role;
+      organizationId = body?.organizationId;
+    } catch {}
+
+    // Fallback to active organization if not provided
+    if (!organizationId) {
+      const active = (session as any)?.session?.activeOrganizationId as string | undefined;
+      if (active) organizationId = active;
+    }
+    // Final fallback: first membership org
+    if (!organizationId) {
+      const first = await db.query.member.findFirst({ where: (m, { eq }) => eq(m.userId, session.user.id) });
+      if (first) organizationId = first.organizationId;
+    }
 
     // Validate required fields
     if (!email || !role || !organizationId) {

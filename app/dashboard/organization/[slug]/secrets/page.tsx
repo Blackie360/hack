@@ -1,9 +1,10 @@
 import UnlockGate from "@/components/security/unlock-gate";
 import SecretTable from "@/components/secrets/secret-table";
 import { getOrganizationBySlug } from "@/server/organizations";
+import { getUserAndOrg } from "@/server/context";
 import { db } from "@/db/drizzle";
 import { project, projectMember, member } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import ProjectSelector from "@/components/secrets/project-selector";
 import EnvEditor from "@/components/secrets/env-editor";
@@ -16,6 +17,9 @@ export default async function SecretsPage({ params, searchParams }: { params: Pr
   const sp = await searchParams;
   const org = await getOrganizationBySlug(slug);
   if (!org) return null;
+  const ctx = await getUserAndOrg();
+  const userMember = await db.query.member.findFirst({ where: and(eq(member.userId, ctx.userId!), eq(member.organizationId, org.id)) });
+  const userRole = userMember?.role;
   const projects = await db.query.project.findMany({ where: eq(project.orgId, org.id) });
   const selectedProjectId = sp.projectId || projects[0]?.id;
 
@@ -51,7 +55,7 @@ export default async function SecretsPage({ params, searchParams }: { params: Pr
           <EnvTabs slug={slug} projectId={selectedProjectId} current={environmentId} />
         </div>
         <EnvEditor projectId={selectedProjectId} environmentId={environmentId} />
-        <SecretTable projectId={selectedProjectId} environmentId={environmentId} />
+        <SecretTable projectId={selectedProjectId} environmentId={environmentId} userRole={userRole} />
       </div>
     </UnlockGate>
   );

@@ -62,11 +62,23 @@ export function InviteMemberForm({ organizationId }: InviteMemberFormProps) {
         }),
       });
 
-      const data = await response.json();
+      let data: any = null;
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          data = await response.json();
+        } else {
+          const text = await response.text();
+          data = { error: text };
+        }
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
         console.error('Invitation error:', data);
-        toast.error(data.error || 'Failed to send invitation');
+        const msg = (data && (data.error || data.message)) || `Failed to send invitation (${response.status})`;
+        toast.error(msg);
         return;
       }
 
@@ -75,7 +87,7 @@ export function InviteMemberForm({ organizationId }: InviteMemberFormProps) {
       router.refresh();
     } catch (error) {
       console.error('Invitation error:', error);
-      toast.error("Failed to send invitation");
+      toast.error("Failed to send invitation. Please try again.");
     } finally {
       setIsLoading(false);
     }

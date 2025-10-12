@@ -1,5 +1,5 @@
 import { db } from "@/db/drizzle";
-import { member, session as sessionTable } from "@/db/schema";
+import { member, session as sessionTable, invitation as invitationTable } from "@/db/schema";
 import { InvitationAcceptance } from "@/components/invitation-acceptance";
 import { Button } from "@/components/ui/button";
 import { notFound, redirect } from "next/navigation";
@@ -115,14 +115,14 @@ export default async function InvitationPage({ params, searchParams }: Invitatio
     });
 
     // Update invitation status
-    await db.update(invitation)
+    await db.update(invitationTable)
       .set({ status: "accepted" })
-      .where((invitations, { eq }) => eq(invitations.id, invitationId));
+      .where((inv, { eq }) => eq(inv.id, invitationId));
 
     // Set this organization as the active organization in the session
     await db.update(sessionTable)
       .set({ activeOrganizationId: invitation.organizationId })
-      .where((sessions, { eq }) => eq(sessions.id, session.id));
+      .where((sessions, { eq }) => eq(sessions.userId, session.user.id));
 
     // Redirect to the specific organization's dashboard
     redirect(`/dashboard/organization/${invitation.organization.slug}`);

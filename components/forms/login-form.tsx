@@ -27,7 +27,7 @@ import { signIn } from "@/server/users";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
@@ -49,7 +49,14 @@ export function LoginForm({
   defaultEmail = "",
   ...props
 }: LoginFormProps) {
-  const lastMethod = authClient.getLastUsedLoginMethod();
+  // Read last used login method on the client only to avoid hydration mismatches
+  const [lastMethod, setLastMethod] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const lm = authClient.getLastUsedLoginMethod();
+      setLastMethod(lm ?? null);
+    } catch {}
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
 

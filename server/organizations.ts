@@ -2,7 +2,7 @@
 
 import { db } from "@/db/drizzle";
 import { member, organization } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 import { getCurrentUser } from "./users";
 
 export async function getOrganizations() {
@@ -36,21 +36,28 @@ export async function getActiveOrganization(userId: string) {
 }
 
 export async function getOrganizationBySlug(slug: string) {
-    try {
-        const organizationBySlug = await db.query.organization.findFirst({
-            where: eq(organization.slug, slug),
-            with: {
-                members: {
-                    with: {
-                        user: true,
-                    },
-                },
-            },
-        });
+  try {
+    const { currentUser } = await getCurrentUser();
+    const myMemberships = await db.query.member.findMany({
+      where: eq(member.userId, currentUser.id),
+    });
+    const orgIds = myMemberships.map((m) => m.organizationId);
+    if (orgIds.length === 0) return null;
 
-        return organizationBySlug;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+    const organizationBySlug = await db.query.organization.findFirst({
+      where: and(eq(organization.slug, slug), inArray(organization.id, orgIds)),
+      with: {
+        members: {
+          with: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return organizationBySlug;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }

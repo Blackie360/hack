@@ -24,13 +24,19 @@ export async function POST(request: Request) {
     where: (m, { and, eq }) => and(eq(m.userId, session.user.id), eq(m.organizationId, orgId)),
   });
   if (me) {
-    await db.insert(projectMember).values({
-      id: crypto.randomUUID(),
-      projectId: id,
-      memberId: me.id,
-      role: "member",
-      createdAt: new Date(),
-    });
+    try {
+      await db.insert(projectMember).values({
+        id: crypto.randomUUID(),
+        projectId: id,
+        memberId: me.id,
+        role: "member",
+        createdAt: new Date(),
+      });
+    } catch (e) {
+      // If the table doesn't exist (migrations not applied), don't block project creation.
+      // Owners will still have access; members can be assigned after migrations are applied.
+      console.error("project_member insert failed (likely migrations not applied)", e);
+    }
   }
   await ensureDefaultEnvironments(id);
   return NextResponse.json({ ok: true, project: { id, slug } });

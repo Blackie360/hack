@@ -64,38 +64,63 @@ export default function EnvEditor({ projectId, environmentId, onSaved }: { proje
       return;
     }
     setSaving(true);
+    const validRows = rows.filter((r) => r.name && r.value);
+    if (validRows.length === 0) {
+      toast.error("No valid secrets to save");
+      setSaving(false);
+      return;
+    }
     try {
-      let success = 0; let failed = 0;
-      for (const row of rows) {
-        if (!row.name || !row.value) continue;
-        try {
+      // Parallel saves for speed
+      const results = await Promise.allSettled(
+        validRows.map(async (row) => {
           const aad = new TextEncoder().encode(`${projectId}:${environmentId}:${row.name}:v1`);
           const { ciphertext, iv } = await encryptAesGcm(ok, new TextEncoder().encode(row.value), aad);
-          const resp = await fetch('/api/secrets', {
-            method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
-              projectId, environmentId, name: row.name,
+          const resp = await fetch("/api/secrets", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              projectId,
+              environmentId,
+              name: row.name,
               ciphertext: btoa(String.fromCharCode(...ciphertext)),
               nonce: btoa(String.fromCharCode(...iv)),
               aad: btoa(String.fromCharCode(...aad)),
-              version: 'v1'
-            })
+              version: "v1",
+            }),
           });
           if (!resp.ok) {
-            const text = await resp.text();
-            throw new Error(text || `${resp.status}`);
+            const contentType = resp.headers.get("content-type");
+            let errorMsg = `${resp.status}`;
+            if (contentType?.includes("application/json")) {
+              const data = await resp.json();
+              errorMsg = data.error || errorMsg;
+            } else {
+              errorMsg = await resp.text() || errorMsg;
+            }
+            throw new Error(errorMsg);
           }
-          success++;
-        } catch (e) {
-          console.error("Failed to save secret", row.name, e);
-          failed++;
-        }
+          return row.name;
+        })
+      );
+      const success = results.filter((r) => r.status === "fulfilled").length;
+      const failed = results.filter((r) => r.status === "rejected").length;
+      const errors = results
+        .filter((r) => r.status === "rejected")
+        .map((r) => (r as PromiseRejectedResult).reason?.message ?? "Unknown error");
+
+      if (success) toast.success(`Saved ${success} secret${success > 1 ? "s" : ""}`);
+      if (failed) {
+        console.error("Failed secrets:", errors);
+        toast.error(`${failed} secret${failed > 1 ? "s" : ""} failed. Check console and project access.`);
       }
-      if (success) toast.success(`Saved ${success} secret${success>1?'s':''}`);
-      if (failed) toast.error(`${failed} secret${failed>1?'s':''} failed to save. Check project access and try again.`);
       if (success) {
         if (onSaved) onSaved();
-        else if (typeof window !== 'undefined') window.location.reload();
+        else if (typeof window !== "undefined") window.location.reload();
       }
+    } catch (e) {
+      console.error("Save error:", e);
+      toast.error("Failed to save secrets. Please try again.");
     } finally {
       setSaving(false);
     }

@@ -19,7 +19,17 @@ export async function getAccessibleProjects(orgId: string) {
     return await db.query.project.findMany({ where: eq(project.orgId, orgId) });
   }
 
-  const pms = await db.query.projectMember.findMany({ where: eq(projectMember.memberId, mem.id) });
+  // Use a plain select to avoid lateral joins that can fail under some drivers
+  let pms: Array<{ projectId: string }> = [];
+  try {
+    pms = await db
+      .select({ projectId: projectMember.projectId })
+      .from(projectMember)
+      .where(eq(projectMember.memberId, mem.id));
+  } catch (e) {
+    // If RLS blocks, return empty instead of throwing
+    return [];
+  }
   if (pms.length === 0) return [];
   const projIds = pms.map((p) => p.projectId);
   const projs = await db.query.project.findMany({ where: inArray(project.id, projIds) });

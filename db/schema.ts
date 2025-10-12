@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
     id: text('id').primaryKey(),
@@ -151,7 +151,9 @@ export const secret = pgTable("secret", {
     expiresAt: timestamp('expires_at'),
     createdBy: text('created_by').notNull().references(() => user.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
-});
+}, (table) => ({
+    uniqueNamePerEnv: unique().on(table.projectId, table.environmentId, table.name),
+}));
 
 export const secretVersion = pgTable("secret_version", {
     id: text('id').primaryKey(),
