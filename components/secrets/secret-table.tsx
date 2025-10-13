@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import SecretEditor from "./secret-editor";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getOrgKey } from "@/lib/crypto/storage";
+import { getOrgKey } from "@/lib/crypto/org-key-manager";
 import { decryptAesGcm, encryptAesGcm } from "@/lib/crypto/secret";
 import { toast } from "sonner";
 import { Eye, Pencil, Trash2, Copy, Download } from "lucide-react";
@@ -33,7 +33,6 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
   const [deleteConfirm, setDeleteConfirm] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [decrypting, setDecrypting] = useState(false);
-  const unlocked = useMemo(() => !!getOrgKey(), []);
   const canWrite = userRole === "owner" || userRole === "admin";
 
   useEffect(() => {
@@ -45,14 +44,11 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       const url = `/api/secrets?projectId=${encodeURIComponent(projectId)}&environmentId=${encodeURIComponent(environmentId)}`;
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) {
-        const text = await res.text();
-        console.error("Failed to load secrets:", res.status, text);
         toast.error("Failed to load secrets");
         return;
       }
       const contentType = res.headers.get("content-type");
       if (!contentType?.includes("application/json")) {
-        console.error("Non-JSON response:", await res.text());
         toast.error("Failed to load secrets");
         return;
       }
@@ -60,50 +56,51 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       setRows(data.secrets ?? []);
       setSelected(new Set());
     } catch (e) {
-      console.error("loadSecrets error:", e);
       toast.error("Failed to load secrets");
     }
   }
 
   async function handleView(row: SecretRow) {
     const ok = getOrgKey();
-    console.log("handleView - org key:", ok ? "present" : "missing");
-    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (!ok) { 
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     try {
-      console.log("Decrypting secret:", row.name, {
-        ciphertextLength: row.ciphertext.length,
-        nonceLength: row.nonce.length,
-        hasAad: !!row.aad
-      });
       const ct = Uint8Array.from(atob(row.ciphertext), c => c.charCodeAt(0));
       const iv = Uint8Array.from(atob(row.nonce), c => c.charCodeAt(0));
       const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
-      const plaintext = await decryptAesGcm(ok, ct, iv, aad);
+      const plaintext = await decryptAesGcm(ok, iv, ct, aad);
       setViewSecret({ name: row.name, value: new TextDecoder().decode(plaintext), created: new Date(row.createdAt).toLocaleString() });
     } catch (e) {
-      console.error("Decryption error:", e);
-      toast.error("Failed to decrypt secret. The encryption key may have changed.");
+      toast.error(`Failed to decrypt "${row.name}".`);
     }
   }
 
   async function handleEdit(row: SecretRow) {
     const ok = getOrgKey();
-    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (!ok) { 
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     try {
       const ct = Uint8Array.from(atob(row.ciphertext), c => c.charCodeAt(0));
       const iv = Uint8Array.from(atob(row.nonce), c => c.charCodeAt(0));
       const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
-      const plaintext = await decryptAesGcm(ok, ct, iv, aad);
+      const plaintext = await decryptAesGcm(ok, iv, ct, aad);
       setEditSecret({ id: row.id, name: row.name, value: new TextDecoder().decode(plaintext) });
     } catch (e) {
-      toast.error("Failed to decrypt secret");
+      toast.error(`Failed to decrypt "${row.name}" for editing.`);
     }
   }
 
   async function saveEdit() {
     if (!editSecret) return;
     const ok = getOrgKey();
-    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (!ok) { 
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     setLoading(true);
     try {
       const aad = new TextEncoder().encode(`${projectId}:${environmentId}:${editSecret.name}:v1`);
@@ -169,26 +166,42 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
 
   async function copyAsEnv(ids: string[]) {
     const ok = getOrgKey();
-    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (!ok) { 
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     if (ids.length === 0) return;
     setDecrypting(true);
     try {
       const toCopy = rows.filter((r) => ids.includes(r.id));
       const decrypted: Array<{ name: string; value: string }> = [];
+      const failed: string[] = [];
+      
       for (const row of toCopy) {
         try {
           const ct = Uint8Array.from(atob(row.ciphertext), c => c.charCodeAt(0));
           const iv = Uint8Array.from(atob(row.nonce), c => c.charCodeAt(0));
           const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
-          const plaintext = await decryptAesGcm(ok, ct, iv, aad);
+          const plaintext = await decryptAesGcm(ok, iv, ct, aad);
           decrypted.push({ name: row.name, value: new TextDecoder().decode(plaintext) });
         } catch (e) {
-          console.error("Failed to decrypt", row.name, e);
+          failed.push(row.name);
         }
       }
+      
+      if (decrypted.length === 0) {
+        toast.error("Could not decrypt any secrets.");
+        return;
+      }
+      
       const envText = decrypted.map((d) => `${d.name}=${d.value}`).join("\n");
       await navigator.clipboard.writeText(envText);
-      toast.success(`Copied ${decrypted.length} secret${decrypted.length > 1 ? "s" : ""} as .env format`);
+      
+      if (failed.length > 0) {
+        toast.warning(`Copied ${decrypted.length} secret${decrypted.length > 1 ? "s" : ""}. Failed to decrypt ${failed.length}.`);
+      } else {
+        toast.success(`Copied ${decrypted.length} secret${decrypted.length > 1 ? "s" : ""} as .env format`);
+      }
     } catch (e) {
       toast.error("Failed to copy secrets");
     } finally {
@@ -204,10 +217,10 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
             <h3 className="font-semibold">Secrets</h3>
             {selected.size > 0 && (
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => copyAsEnv(Array.from(selected))} loading={decrypting} loadingText="Decrypting..." className="flex-1 md:flex-none">
+                <Button size="sm" variant="outline" onClick={() => copyAsEnv(Array.from(selected))} disabled={decrypting} className="flex-1 md:flex-none">
                   <Copy className="mr-1 md:mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Copy {selected.size} as .env</span>
-                  <span className="sm:hidden">Copy {selected.size}</span>
+                  <span className="hidden sm:inline">{decrypting ? "Decrypting..." : `Copy ${selected.size} as .env`}</span>
+                  <span className="sm:hidden">{decrypting ? "..." : `Copy ${selected.size}`}</span>
                 </Button>
                 {canWrite && (
                   <Button size="sm" variant="destructive" onClick={() => handleDelete(Array.from(selected))} className="flex-1 md:flex-none">
@@ -219,10 +232,10 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
               </div>
             )}
           </div>
-          <Button size="sm" variant="outline" onClick={() => copyAsEnv(rows.map(r => r.id))} loading={decrypting} loadingText="Decrypting..." disabled={rows.length === 0} className="w-full md:w-auto">
+          <Button size="sm" variant="outline" onClick={() => copyAsEnv(rows.map(r => r.id))} disabled={decrypting || rows.length === 0} className="w-full md:w-auto">
             <Download className="mr-1 md:mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Export All</span>
-            <span className="sm:hidden">Export</span>
+            <span className="hidden sm:inline">{decrypting ? "Decrypting..." : "Export All"}</span>
+            <span className="sm:hidden">{decrypting ? "..." : "Export"}</span>
           </Button>
         </div>
         {rows.length === 0 ? (
@@ -332,9 +345,6 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
             </div>
           </>
         )}
-        {!unlocked && (
-          <div className="text-xs text-muted-foreground mt-2">Unlock to decrypt values client‑side.</div>
-        )}
       </Card>
 
       {/* View Dialog */}
@@ -387,7 +397,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditSecret(null)}>Cancel</Button>
-            <Button onClick={saveEdit} loading={loading} loadingText="Saving...">Save</Button>
+            <Button onClick={saveEdit} disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -403,8 +413,8 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm([])}>Cancel</Button>
-            <Button variant="destructive" onClick={confirmDelete} loading={loading} loadingText="Deleting...">
-              Delete
+            <Button variant="destructive" onClick={confirmDelete} disabled={loading}>
+              {loading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

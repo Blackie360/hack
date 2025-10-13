@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import GrainOverlay from "@/components/grain-overlay";
 import { 
   Shield, 
   Lock, 
@@ -20,6 +21,9 @@ import {
 export default function Home() {
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Grain Overlay for Creative Effect */}
+      <GrainOverlay />
+      
       {/* Ambient background layers */}
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.4] dark:opacity-[0.25]" />
       <div className="pointer-events-none absolute inset-0 bg-spotlight" />

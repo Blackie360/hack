@@ -46,7 +46,7 @@ export default function CreateProjectDialog({ orgId }: { orgId: string }) {
           <Input placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
           <Input placeholder="Slug" value={slug} onChange={e => setSlug(e.target.value)} />
           <div className="flex justify-end">
-            <Button onClick={create} loading={loading} loadingText="Creating..." disabled={!name || !slug}>Create</Button>
+            <Button onClick={create} disabled={loading || !name || !slug}>{loading ? "Creating..." : "Create"}</Button>
           </div>
         </div>
       </DialogContent>

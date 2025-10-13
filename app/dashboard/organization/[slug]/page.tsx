@@ -7,7 +7,6 @@ import { getOrganizationBySlug } from "@/server/organizations";
 import { getAccessibleProjects } from "@/server/projects";
 import { KeyRound, Users, Mail, ShieldCheck, Settings2 } from "lucide-react";
 import CreateProjectDialog from "@/components/projects/create-project-dialog";
-import PendingOnboardingBanner from "@/components/security/pending-onboarding-banner";
 
 type Params = Promise<{ slug: string }>;
 
@@ -22,8 +21,6 @@ export default async function OrganizationPage({ params }: { params: Params }) {
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl md:text-3xl font-bold">{organization?.name}</h1>
       </div>
-
-      <PendingOnboardingBanner />
 
       {/* Projects list */}
       <div className="space-y-3">
