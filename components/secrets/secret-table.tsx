@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import SecretEditor from "./secret-editor";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getOrgKey } from "@/lib/crypto/storage";
+import { getOrgKey } from "@/lib/crypto/org-key-manager";
 import { decryptAesGcm, encryptAesGcm } from "@/lib/crypto/secret";
 import { toast } from "sonner";
 import { Eye, Pencil, Trash2, Copy, Download } from "lucide-react";
@@ -33,7 +33,6 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
   const [deleteConfirm, setDeleteConfirm] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [decrypting, setDecrypting] = useState(false);
-  const unlocked = useMemo(() => !!getOrgKey(), []);
   const canWrite = userRole === "owner" || userRole === "admin";
 
   useEffect(() => {
@@ -45,14 +44,11 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       const url = `/api/secrets?projectId=${encodeURIComponent(projectId)}&environmentId=${encodeURIComponent(environmentId)}`;
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) {
-        const text = await res.text();
-        console.error("Failed to load secrets:", res.status, text);
         toast.error("Failed to load secrets");
         return;
       }
       const contentType = res.headers.get("content-type");
       if (!contentType?.includes("application/json")) {
-        console.error("Non-JSON response:", await res.text());
         toast.error("Failed to load secrets");
         return;
       }
@@ -60,50 +56,65 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       setRows(data.secrets ?? []);
       setSelected(new Set());
     } catch (e) {
-      console.error("loadSecrets error:", e);
       toast.error("Failed to load secrets");
     }
   }
 
   async function handleView(row: SecretRow) {
     const ok = getOrgKey();
-    console.log("handleView - org key:", ok ? "present" : "missing");
-    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (!ok) { 
+      console.error("[handleView] No encryption key available");
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     try {
-      console.log("Decrypting secret:", row.name, {
+      console.log("[handleView] Decrypting secret:", row.name, {
         ciphertextLength: row.ciphertext.length,
         nonceLength: row.nonce.length,
-        hasAad: !!row.aad
+        hasAad: !!row.aad,
+        version: row.version
       });
+      
       const ct = Uint8Array.from(atob(row.ciphertext), c => c.charCodeAt(0));
       const iv = Uint8Array.from(atob(row.nonce), c => c.charCodeAt(0));
       const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
-      const plaintext = await decryptAesGcm(ok, ct, iv, aad);
+      const plaintext = await decryptAesGcm(ok, iv, ct, aad);
       setViewSecret({ name: row.name, value: new TextDecoder().decode(plaintext), created: new Date(row.createdAt).toLocaleString() });
+      console.log("[handleView] ✅ Successfully decrypted secret:", row.name);
     } catch (e) {
-      console.error("Decryption error:", e);
-      toast.error("Failed to decrypt secret. The encryption key may have changed.");
+      console.error("[handleView] ❌ Decryption failed for:", row.name, e);
+      toast.error(`Failed to decrypt "${row.name}". This secret may have been encrypted with a different key. Error: ${e instanceof Error ? e.message : 'Unknown'}`);
     }
   }
 
   async function handleEdit(row: SecretRow) {
     const ok = getOrgKey();
-    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (!ok) { 
+      console.error("[handleEdit] No encryption key available");
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     try {
+      console.log("[handleEdit] Decrypting secret for edit:", row.name);
       const ct = Uint8Array.from(atob(row.ciphertext), c => c.charCodeAt(0));
       const iv = Uint8Array.from(atob(row.nonce), c => c.charCodeAt(0));
       const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
-      const plaintext = await decryptAesGcm(ok, ct, iv, aad);
+      const plaintext = await decryptAesGcm(ok, iv, ct, aad);
       setEditSecret({ id: row.id, name: row.name, value: new TextDecoder().decode(plaintext) });
+      console.log("[handleEdit] ✅ Successfully decrypted secret for editing");
     } catch (e) {
-      toast.error("Failed to decrypt secret");
+      console.error("[handleEdit] ❌ Decryption failed:", e);
+      toast.error(`Failed to decrypt "${row.name}" for editing. This secret may have been encrypted with a different key.`);
     }
   }
 
   async function saveEdit() {
     if (!editSecret) return;
     const ok = getOrgKey();
-    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (!ok) { 
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     setLoading(true);
     try {
       const aad = new TextEncoder().encode(`${projectId}:${environmentId}:${editSecret.name}:v1`);
@@ -169,27 +180,48 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
 
   async function copyAsEnv(ids: string[]) {
     const ok = getOrgKey();
-    if (!ok) { toast.error("Unlock workspace first"); return; }
+    if (!ok) { 
+      console.error("[copyAsEnv] No encryption key available");
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     if (ids.length === 0) return;
     setDecrypting(true);
     try {
       const toCopy = rows.filter((r) => ids.includes(r.id));
       const decrypted: Array<{ name: string; value: string }> = [];
+      const failed: string[] = [];
+      
+      console.log(`[copyAsEnv] Attempting to decrypt ${toCopy.length} secrets...`);
+      
       for (const row of toCopy) {
         try {
           const ct = Uint8Array.from(atob(row.ciphertext), c => c.charCodeAt(0));
           const iv = Uint8Array.from(atob(row.nonce), c => c.charCodeAt(0));
           const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
-          const plaintext = await decryptAesGcm(ok, ct, iv, aad);
+          const plaintext = await decryptAesGcm(ok, iv, ct, aad);
           decrypted.push({ name: row.name, value: new TextDecoder().decode(plaintext) });
         } catch (e) {
-          console.error("Failed to decrypt", row.name, e);
+          console.error(`[copyAsEnv] Failed to decrypt "${row.name}":`, e);
+          failed.push(row.name);
         }
       }
+      
+      if (decrypted.length === 0) {
+        toast.error("Could not decrypt any secrets. They may have been encrypted with a different key.");
+        return;
+      }
+      
       const envText = decrypted.map((d) => `${d.name}=${d.value}`).join("\n");
       await navigator.clipboard.writeText(envText);
-      toast.success(`Copied ${decrypted.length} secret${decrypted.length > 1 ? "s" : ""} as .env format`);
+      
+      if (failed.length > 0) {
+        toast.warning(`Copied ${decrypted.length} secret${decrypted.length > 1 ? "s" : ""}. Failed to decrypt ${failed.length}: ${failed.join(", ")}`);
+      } else {
+        toast.success(`Copied ${decrypted.length} secret${decrypted.length > 1 ? "s" : ""} as .env format`);
+      }
     } catch (e) {
+      console.error("[copyAsEnv] Error:", e);
       toast.error("Failed to copy secrets");
     } finally {
       setDecrypting(false);
@@ -331,9 +363,6 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
               ))}
             </div>
           </>
-        )}
-        {!unlocked && (
-          <div className="text-xs text-muted-foreground mt-2">Unlock to decrypt values client‑side.</div>
         )}
       </Card>
 

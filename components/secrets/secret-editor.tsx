@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getOrgKey } from "@/lib/crypto/storage";
+import { getOrgKey } from "@/lib/crypto/org-key-manager";
 import { encryptAesGcm } from "@/lib/crypto/secret";
+import { toast } from "sonner";
 
 export default function SecretEditor({ projectId, environmentId, onSaved }: { projectId: string; environmentId: string; onSaved: () => void }) {
   const [open, setOpen] = useState(false);
@@ -16,12 +17,15 @@ export default function SecretEditor({ projectId, environmentId, onSaved }: { pr
 
   async function save() {
     const ok = getOrgKey();
-    if (!ok) return;
+    if (!ok) {
+      toast.error("Encryption key not available. Please refresh the page.");
+      return;
+    }
     setSaving(true);
     try {
       const aad = new TextEncoder().encode(`${projectId}:${environmentId}:${name}:v1`);
       const { ciphertext, iv } = await encryptAesGcm(ok, new TextEncoder().encode(value), aad);
-      await fetch("/api/secrets", {
+      const resp = await fetch("/api/secrets", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -34,10 +38,17 @@ export default function SecretEditor({ projectId, environmentId, onSaved }: { pr
           version: "v1",
         })
       });
+      if (!resp.ok) {
+        toast.error("Failed to save secret");
+        return;
+      }
+      toast.success("Secret created");
       setOpen(false);
       setName("");
       setValue("");
       onSaved();
+    } catch (e) {
+      toast.error("Failed to save secret");
     } finally {
       setSaving(false);
     }

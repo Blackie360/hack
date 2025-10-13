@@ -4,25 +4,15 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getOrgKey } from "@/lib/crypto/storage";
+import { getOrgKey } from "@/lib/crypto/org-key-manager";
 import { deriveKek } from "@/lib/crypto/argon2";
 import { encryptAesGcm } from "@/lib/crypto/secret";
 import RotateKeysDialog from "@/components/security/rotate-keys-dialog";
-import OnboardMembers from "@/components/security/onboard-members";
-
-type Member = {
-  id: string;
-  email: string;
-  role: string;
-  hasWrappedKey: boolean;
-};
 
 export default function SettingsPage({ params }: { params: Promise<{ slug: string }> }) {
   const [hasRecovery, setHasRecovery] = useState<boolean>(false);
   const [pass, setPass] = useState("");
   const [busy, setBusy] = useState(false);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [orgId, setOrgId] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -30,14 +20,6 @@ export default function SettingsPage({ params }: { params: Promise<{ slug: strin
       const res = await fetch('/api/org-recovery');
       const data = await res.json();
       setHasRecovery(!!data?.recovery);
-
-      // Fetch members and their wrapped key status
-      const membersRes = await fetch('/api/members-with-keys');
-      const membersData = await membersRes.json();
-      if (membersData.members) {
-        setMembers(membersData.members);
-        setOrgId(membersData.orgId);
-      }
     })();
   }, []);
 
@@ -65,7 +47,12 @@ export default function SettingsPage({ params }: { params: Promise<{ slug: strin
 
   return (
     <div className="container mx-auto px-4 py-10 space-y-6">
-      <OnboardMembers members={members} orgId={orgId} />
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-2">Organization Settings</h2>
+        <p className="text-sm text-muted-foreground">
+          Encryption keys are automatically managed based on your authentication session.
+        </p>
+      </Card>
       
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-2">Recovery Passphrase</h2>
@@ -73,7 +60,7 @@ export default function SettingsPage({ params }: { params: Promise<{ slug: strin
           <p className="text-sm text-muted-foreground">Recovery is configured for this organization.</p>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Set a recovery passphrase to allow the owner to recover the organization key if all devices are lost. Keep it safe.</p>
+            <p className="text-sm text-muted-foreground">Set a recovery passphrase as an additional backup for your organization encryption key.</p>
             <Input type="password" placeholder="Enter a strong passphrase" value={pass} onChange={e => setPass(e.target.value)} />
             <Button onClick={setupRecovery} disabled={!pass || busy}>Set Recovery</Button>
           </div>

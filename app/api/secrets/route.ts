@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db/drizzle";
-import { member, project, projectMember, secret, environment } from "@/db/schema";
+import { member, project, secret, environment } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { getUserAndOrg } from "@/server/context";
 import { logAudit } from "@/server/audit";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export async function GET(request: Request) {
   try {
@@ -16,27 +16,12 @@ export async function GET(request: Request) {
     if (!projectId || !environmentSlug) {
       return NextResponse.json({ error: "Missing projectId or environmentId" }, { status: 400 });
     }
-    // Enforce project membership: owner sees all; others see if no assignments OR if assigned
+    // Check if user is a member of the org
     const proj = await db.query.project.findFirst({ where: eq(project.id, projectId) });
     if (!proj) return NextResponse.json({ error: "Project not found" }, { status: 404 });
     const mem = await db.query.member.findFirst({ where: and(eq(member.userId, ctx.userId), eq(member.organizationId, proj.orgId)) });
     if (!mem) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    if (mem.role !== "owner") {
-      // Check if project has any assignments
-      let allAssignments: Array<{ memberId: string }> = [];
-      try {
-        allAssignments = await db.select({ memberId: projectMember.memberId }).from(projectMember).where(eq(projectMember.projectId, projectId));
-      } catch (e) {
-        console.error("Failed to query projectMember:", e);
-        // If query fails (e.g., RLS), assume no assignments (open access)
-      }
-      if (allAssignments.length > 0) {
-        // Has assignments: user must be assigned
-        const isAssigned = allAssignments.some(a => a.memberId === mem.id);
-        if (!isAssigned) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-      // No assignments: all org members can access
-    }
+    // All org members can access all projects
     // Resolve environment slug → id
     const env = await db.query.environment.findFirst({ where: (e, { and, eq }) => and(eq(e.projectId, projectId), eq(e.slug, environmentSlug)) });
     if (!env) return NextResponse.json({ error: "Environment not found" }, { status: 404 });

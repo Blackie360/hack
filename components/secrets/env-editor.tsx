@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Eye, EyeOff, Copy, Check, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { encryptAesGcm } from "@/lib/crypto/secret";
-import { getOrgKey } from "@/lib/crypto/storage";
+import { getOrgKey } from "@/lib/crypto/org-key-manager";
 
 type Row = { id: string; name: string; value: string; masked?: boolean; justCopied?: boolean };
 
@@ -60,7 +60,7 @@ export default function EnvEditor({ projectId, environmentId, onSaved }: { proje
   async function saveAll() {
     const ok = getOrgKey();
     if (!ok) {
-      toast.error("Unlock workspace to save secrets");
+      toast.error("Encryption key not available. Please refresh the page.");
       return;
     }
     setSaving(true);

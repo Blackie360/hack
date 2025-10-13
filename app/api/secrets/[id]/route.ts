@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db/drizzle";
-import { secret, project, member, projectMember } from "@/db/schema";
+import { secret, project, member } from "@/db/schema";
 import { getUserAndOrg } from "@/server/context";
 import { logAudit } from "@/server/audit";
 import { and, eq } from "drizzle-orm";
@@ -11,18 +11,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const sec = await db.query.secret.findFirst({ where: eq(secret.id, id) });
   if (!sec) return NextResponse.json({ error: "Secret not found" }, { status: 404 });
-  // Verify user has access to the project
+  // Verify user is a member of the org
   const proj = await db.query.project.findFirst({ where: eq(project.id, sec.projectId) });
   if (!proj) return NextResponse.json({ error: "Project not found" }, { status: 404 });
   const mem = await db.query.member.findFirst({ where: and(eq(member.userId, ctx.userId), eq(member.organizationId, proj.orgId)) });
   if (!mem) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  // Check access: owner OR (no assignments OR is assigned)
-  if (mem.role !== "owner") {
-    const allAssignments = await db.select({ memberId: projectMember.memberId }).from(projectMember).where(eq(projectMember.projectId, sec.projectId));
-    if (allAssignments.length > 0 && !allAssignments.some(a => a.memberId === mem.id)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-  }
+  // All org members can access all projects
   return NextResponse.json({ secret: sec });
 }
 
@@ -40,13 +34,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!proj) return NextResponse.json({ error: "Project not found" }, { status: 404 });
     const mem = await db.query.member.findFirst({ where: and(eq(member.userId, ctx.userId), eq(member.organizationId, proj.orgId)) });
     if (!mem) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    // Check access: owner OR (no assignments OR is assigned)
-    if (mem.role !== "owner") {
-      const allAssignments = await db.select({ memberId: projectMember.memberId }).from(projectMember).where(eq(projectMember.projectId, sec.projectId));
-      if (allAssignments.length > 0 && !allAssignments.some(a => a.memberId === mem.id)) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-    }
     // Only admins/owners can edit
     if (mem.role !== "owner" && mem.role !== "admin") {
       return NextResponse.json({ error: "Write access denied" }, { status: 403 });
@@ -71,13 +58,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     if (!proj) return NextResponse.json({ error: "Project not found" }, { status: 404 });
     const mem = await db.query.member.findFirst({ where: and(eq(member.userId, ctx.userId), eq(member.organizationId, proj.orgId)) });
     if (!mem) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    // Check access: owner OR (no assignments OR is assigned)
-    if (mem.role !== "owner") {
-      const allAssignments = await db.select({ memberId: projectMember.memberId }).from(projectMember).where(eq(projectMember.projectId, sec.projectId));
-      if (allAssignments.length > 0 && !allAssignments.some(a => a.memberId === mem.id)) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-    }
     // Only admins/owners can delete
     if (mem.role !== "owner" && mem.role !== "admin") {
       return NextResponse.json({ error: "Write access denied" }, { status: 403 });
