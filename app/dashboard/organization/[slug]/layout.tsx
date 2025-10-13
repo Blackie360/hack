@@ -1,52 +1,79 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import CommandMenu from "@/components/command-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import CryptoProvider from "@/components/security/crypto-provider";
 import { getOrganizationBySlug } from "@/server/organizations";
+import { getOrganizations } from "@/server/organizations";
+import { getCurrentUser } from "@/server/users";
+import { Icon } from "@iconify/react";
 import {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
+  SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
+  SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { UserNav } from "@/components/user-nav";
+import { Separator } from "@/components/ui/separator";
 
 export default async function OrgLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const organization = await getOrganizationBySlug(slug);
+  const organizations = await getOrganizations();
+  const { currentUser } = await getCurrentUser();
   
   return (
     <CryptoProvider orgId={organization?.id || ""}>
       <SidebarProvider>
-        <div className="flex min-h-[calc(100vh-4rem)] md:gap-4 md:px-4 md:py-6">
-          {/* Desktop Sidebar - hidden on mobile */}
-          <Sidebar className="hidden md:flex">
-            <SidebarHeader>
-              <div className="text-sm font-semibold">Organization</div>
-            </SidebarHeader>
-            <SidebarContent>
-              <OrgSidebar params={params} />
-            </SidebarContent>
-          </Sidebar>
+        <Sidebar collapsible="icon">
+          <SidebarHeader>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton size="lg" asChild>
+                  <Link href={`/dashboard/organization/${slug}`}>
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                      <Icon icon="mdi:office-building" className="size-4" />
+                    </div>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">{organization?.name}</span>
+                      <span className="truncate text-xs text-muted-foreground">Organization</span>
+                    </div>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarHeader>
           
-          <SidebarInset className="w-full">
-            {/* Command Menu - hidden on mobile */}
-            <div className="hidden md:flex items-center justify-between">
-              <CommandMenu />
-            </div>
-            
-            {/* Content with mobile padding and bottom nav spacing */}
-            <div className="px-4 py-4 md:mt-4 pb-20 md:pb-4">
-              {children}
-            </div>
-          </SidebarInset>
-        </div>
+          <SidebarContent>
+            <OrgSidebar params={params} />
+          </SidebarContent>
+          
+          <SidebarFooter>
+            <UserNav name={currentUser.name} email={currentUser.email} />
+          </SidebarFooter>
+          <SidebarRail />
+        </Sidebar>
+        
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <CommandMenu />
+          </header>
+          
+          <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+            {children}
+          </div>
+        </SidebarInset>
         
         {/* Mobile Bottom Navigation */}
         <MobileNav slug={slug} />
@@ -74,35 +101,70 @@ async function OrgSidebar({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const base = `/dashboard/organization/${slug}`;
   return (
-    <SidebarMenu>
+    <>
       <SidebarGroup>
-        <SidebarGroupLabel>Overview</SidebarGroupLabel>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild href={base}>Overview</SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarGroup>
-      <SidebarGroup>
-        <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild href={`${base}/secrets`}>Secrets</SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild href={`${base}/members`}>Members</SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild href={`${base}/invites`}>Invites</SidebarMenuButton>
-        </SidebarMenuItem>
+        <SidebarGroupLabel>Management</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href={base}>
+                  <Icon icon="mdi:view-dashboard" className="size-4" />
+                  <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href={`${base}/secrets`}>
+                  <Icon icon="mdi:key" className="size-4" />
+                  <span>Secrets</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href={`${base}/members`}>
+                  <Icon icon="mdi:account-multiple" className="size-4" />
+                  <span>Members</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href={`${base}/invites`}>
+                  <Icon icon="mdi:email" className="size-4" />
+                  <span>Invites</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
       </SidebarGroup>
       <SidebarGroup>
         <SidebarGroupLabel>Security</SidebarGroupLabel>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild href={`${base}/audit`}>Audit</SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild href={`${base}/settings`}>Settings</SidebarMenuButton>
-        </SidebarMenuItem>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href={`${base}/audit`}>
+                  <Icon icon="mdi:shield-check" className="size-4" />
+                  <span>Audit</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href={`${base}/settings`}>
+                  <Icon icon="mdi:cog" className="size-4" />
+                  <span>Settings</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
       </SidebarGroup>
-    </SidebarMenu>
+    </>
   );
 }
 

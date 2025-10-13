@@ -28,8 +28,6 @@ export async function deriveOrgKey(orgId: string): Promise<Uint8Array> {
   // ONLY use orgId - same key for everyone in the org
   const data = encoder.encode(`vaultsync:org:${orgId}`);
   
-  console.log("[deriveOrgKey] Deriving SHARED org key for:", orgId);
-  
   // Use Web Crypto API to derive a key
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   return new Uint8Array(hashBuffer);
@@ -38,7 +36,6 @@ export async function deriveOrgKey(orgId: string): Promise<Uint8Array> {
 // Initialize org key from session
 export async function initOrgKeyFromSession(userId: string, orgId: string) {
   if (!orgId) {
-    console.error("[initOrgKeyFromSession] Missing orgId");
     return null;
   }
   
@@ -47,8 +44,6 @@ export async function initOrgKeyFromSession(userId: string, orgId: string) {
   setOrgKey(key);
   keyMetadata = { orgId };
   
-  console.log("[initOrgKeyFromSession] SHARED org key initialized. Length:", key.length);
-  console.log("[initOrgKeyFromSession] ✅ All team members in org", orgId.substring(0, 8), "can now share secrets!");
   return key;
 }
 

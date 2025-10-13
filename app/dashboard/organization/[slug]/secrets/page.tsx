@@ -10,7 +10,6 @@ import EnvEditor from "@/components/secrets/env-editor";
 import EnvTabs from "@/components/secrets/env-tabs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import CryptoDebug from "@/components/security/crypto-debug";
 
 export default async function SecretsPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ projectId?: string }> }) {
   const { slug } = await params;
@@ -41,7 +40,6 @@ export default async function SecretsPage({ params, searchParams }: { params: Pr
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <CryptoDebug />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl md:text-2xl font-semibold">Secrets</h1>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">

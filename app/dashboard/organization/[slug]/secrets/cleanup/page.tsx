@@ -81,7 +81,6 @@ export default function CleanupPage() {
 
       setSecrets(statuses);
     } catch (e) {
-      console.error("Error checking secrets:", e);
       toast.error("Failed to check secrets");
     } finally {
       setLoading(false);
@@ -114,7 +113,6 @@ export default function CleanupPage() {
       toast.success(`Deleted ${failedIds.length} secret(s)`);
       checkSecrets(); // Refresh the list
     } catch (e) {
-      console.error("Error deleting secrets:", e);
       toast.error("Failed to delete secrets");
     } finally {
       setDeleting(false);

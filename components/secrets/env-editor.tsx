@@ -111,15 +111,13 @@ export default function EnvEditor({ projectId, environmentId, onSaved }: { proje
 
       if (success) toast.success(`Saved ${success} secret${success > 1 ? "s" : ""}`);
       if (failed) {
-        console.error("Failed secrets:", errors);
-        toast.error(`${failed} secret${failed > 1 ? "s" : ""} failed. Check console and project access.`);
+        toast.error(`${failed} secret${failed > 1 ? "s" : ""} failed.`);
       }
       if (success) {
         if (onSaved) onSaved();
         else if (typeof window !== "undefined") window.location.reload();
       }
     } catch (e) {
-      console.error("Save error:", e);
       toast.error("Failed to save secrets. Please try again.");
     } finally {
       setSaving(false);
@@ -147,7 +145,9 @@ export default function EnvEditor({ projectId, environmentId, onSaved }: { proje
             </DialogContent>
           </Dialog>
           <Button variant="outline" onClick={addRow}>Add Row</Button>
-          <Button onClick={saveAll} loading={saving} loadingText="Saving..." disabled={saving || !rows.some(r => r.name && r.value)}>Save</Button>
+          <Button onClick={saveAll} disabled={saving || !rows.some(r => r.name && r.value)}>
+            {saving ? "Saving..." : "Save"}
+          </Button>
         </div>
       </div>
       <div className="space-y-2">
