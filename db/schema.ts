@@ -120,7 +120,7 @@ export const invitationRelations = relations(invitation, ({ one }) => ({
 }));
 
 // ----------------------
-// VaultSync E2EE Tables
+// LockIn E2EE Tables
 // ----------------------
 
 export const project = pgTable("project", {
@@ -322,7 +322,7 @@ export const schema = {
     memberRelations,
     userRelations,
     invitationRelations,
-    // VaultSync
+    // LockIn
     project,
     environment,
     secret,

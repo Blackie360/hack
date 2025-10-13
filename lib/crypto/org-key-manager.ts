@@ -26,7 +26,7 @@ export function getKeyMetadata() {
 export async function deriveOrgKey(orgId: string): Promise<Uint8Array> {
   const encoder = new TextEncoder();
   // ONLY use orgId - same key for everyone in the org
-  const data = encoder.encode(`vaultsync:org:${orgId}`);
+  const data = encoder.encode(`lockin:org:${orgId}`);
   
   // Use Web Crypto API to derive a key
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);

@@ -1,4 +1,4 @@
--- Enable RLS on VaultSync tables
+-- Enable RLS on LockIn tables
 ALTER TABLE public.project ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.environment ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.secret ENABLE ROW LEVEL SECURITY;

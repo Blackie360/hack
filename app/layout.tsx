@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VaultSync - Secure Environment Variable Management",
+  title: "LockIn - Secure Environment Variable Management",
   description:
     "Securely store, manage, and sync your .env files across devices. Built for developers and teams with end-to-end encryption.",
 };

@@ -1,10 +1,10 @@
-# VaultSync
+# LockIn
 
-![VaultSync](public/better-auth-starter.png)
+![LockIn](public/better-auth-starter.png)
 
 ## Overview
 
-**VaultSync** is a secure, web-based platform that lets developers and teams safely store, manage, and share environment variables from anywhere. Whether you're switching machines or building fast during a hackathon, VaultSync keeps your `.env` keys organized, encrypted, and instantly accessible across devices.
+**LockIn** is a secure, web-based platform that lets developers and teams safely store, manage, and share environment variables from anywhere. Whether you're switching machines or building fast during a hackathon, LockIn keeps your `.env` keys organized, encrypted, and instantly accessible across devices.
 
 ### Key Features
 
@@ -71,7 +71,7 @@ pnpm drizzle-kit push
 pnpm dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser to see VaultSync in action!
+5. Open [http://localhost:3000](http://localhost:3000) in your browser to see LockIn in action!
 
 ## Project Structure
 
@@ -138,7 +138,7 @@ Make sure to set all required environment variables in your `.env.local` file. N
 3. Add environment variables in Vercel dashboard
 4. Deploy!
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/vaultsync)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/lockin)
 
 ## Contributing
 
@@ -150,7 +150,7 @@ This project is built using Better Auth starter template and is available under 
 
 ## Support
 
-For support, email support@vaultsync.dev or open an issue on GitHub.
+For support, email support@lockin.dev or open an issue on GitHub.
 
 ---
 

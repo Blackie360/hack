@@ -1,4 +1,4 @@
--- VaultSync core tables (projects, environments, secrets, versions, org key wraps, recovery, audit)
+-- LockIn core tables (projects, environments, secrets, versions, org key wraps, recovery, audit)
 
 CREATE TABLE IF NOT EXISTS "project" (
   "id" text PRIMARY KEY,

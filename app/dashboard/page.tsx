@@ -24,7 +24,7 @@ export default async function Dashboard() {
     <div className="flex flex-col gap-4 items-center justify-center min-h-screen px-4 py-20">
       <div className="flex flex-col items-center gap-6 text-center max-w-md">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Welcome to VaultSync</h1>
+          <h1 className="text-3xl font-bold">Welcome to LockIn</h1>
           <p className="text-muted-foreground">
             Get started by creating your first organization to manage secrets and collaborate with your team.
           </p>

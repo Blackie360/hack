@@ -34,7 +34,7 @@ export default function Home() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
               <Lock className="h-6 w-6 text-primary" />
             </div>
-            <span className="text-xl font-bold text-gradient">VaultSync</span>
+            <span className="text-xl font-bold text-gradient">LockIn</span>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">Features</a>
@@ -66,8 +66,8 @@ export default function Home() {
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mb-10 animate-fade-up [animation-delay:120ms]">
-            VaultSync is a secure platform that lets developers and teams safely store, 
-            manage, and share environment variables from anywhere. Never lose your .env files again.
+            LockIn is a secure platform that lets developers and teams safely store, 
+            manage, and share environment variables from anywhere. Lock in your secrets securely.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-16 animate-fade-up [animation-delay:180ms]">
@@ -171,7 +171,7 @@ export default function Home() {
             Perfect For Every Developer
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Whether you're solo or working with a team, VaultSync has you covered
+            Whether you're solo or working with a team, LockIn has you covered
           </p>
         </div>
 
@@ -266,7 +266,7 @@ export default function Home() {
             Ready to Secure Your Secrets?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of developers who trust VaultSync to keep their API keys 
+            Join thousands of developers who trust LockIn to keep their API keys 
             safe, synced, and accessible across all their devices.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -296,10 +296,10 @@ export default function Home() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                 <Lock className="h-5 w-5 text-primary" />
               </div>
-              <span className="font-bold">VaultSync</span>
+              <span className="font-bold">LockIn</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 VaultSync. Built for developers who value security.
+              © 2025 LockIn. Built for developers who value security.
             </p>
           </div>
         </div>
