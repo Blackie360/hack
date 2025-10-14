@@ -9,6 +9,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { lastLoginMethod, organization } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import { sendEmail } from "./email";
 import { ac, admin, member, owner } from "./auth/permissions";
 
@@ -70,7 +71,7 @@ export const auth = betterAuth({
             try {
                 await db.update(schema.session)
                     .set({ activeOrganizationId: data.organization.id })
-                    .where(schema.session.userId.eq(data.user.id));
+                    .where(eq(schema.session.userId, data.user.id));
             } catch {}
         },
         async sendInvitationEmail(data: { 
