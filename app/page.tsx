@@ -171,7 +171,7 @@ export default function Home() {
             Perfect For Every Developer
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Whether you're solo or working with a team, LockIn has you covered
+            Whether you&apos;re solo or working with a team, LockIn has you covered
           </p>
         </div>
 

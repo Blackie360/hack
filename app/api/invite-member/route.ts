@@ -30,9 +30,11 @@ export async function POST(request: NextRequest) {
     } catch {}
 
     // Fallback to active organization if not provided
-    if (!organizationId) {
-      const active = (session as any)?.session?.activeOrganizationId as string | undefined;
-      if (active) organizationId = active;
+    if (!organizationId && session && typeof session === 'object' && 'session' in session) {
+      const sessionObj = session.session as { activeOrganizationId?: string };
+      if (sessionObj?.activeOrganizationId) {
+        organizationId = sessionObj.activeOrganizationId;
+      }
     }
     // Final fallback: first membership org
     if (!organizationId) {

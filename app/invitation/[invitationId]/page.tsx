@@ -46,14 +46,11 @@ export default async function InvitationPage({ params, searchParams }: Invitatio
             <p className="text-muted-foreground">
               This invitation has expired. Please contact the organization administrator for a new invitation.
             </p>
-            <a
-              href="/"
-              className="inline-block"
-            >
+            <Link href="/" className="inline-block">
               <Button>
                 Go to Home
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
       </div>

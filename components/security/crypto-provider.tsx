@@ -26,8 +26,8 @@ export default function CryptoProvider({
           userId = sessionData.data.user.id;
         } else if (sessionData?.user?.id) {
           userId = sessionData.user.id;
-        } else if ((sessionData as any)?.session?.userId) {
-          userId = (sessionData as any).session.userId;
+        } else if (sessionData && typeof sessionData === 'object' && 'session' in sessionData && typeof sessionData.session === 'object' && sessionData.session && 'userId' in sessionData.session) {
+          userId = sessionData.session.userId as string;
         }
         
         if (userId && orgId) {
@@ -35,7 +35,7 @@ export default function CryptoProvider({
         }
         
         setInitialized(true);
-      } catch (e) {
+      } catch {
         setInitialized(true);
       }
     }

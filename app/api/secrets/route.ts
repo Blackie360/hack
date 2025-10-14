@@ -80,10 +80,11 @@ export async function POST(request: Request) {
     });
     await logAudit(request, { action: "secret.create", targetType: "secret", meta: { projectId, environmentId, name } });
     return NextResponse.json({ ok: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST /api/secrets error:", error);
     // Check for unique constraint violation
-    if (error?.code === "23505" || error?.message?.includes("unique constraint")) {
+    const errorObj = error as { code?: string; message?: string };
+    if (errorObj?.code === "23505" || errorObj?.message?.includes("unique constraint")) {
       return NextResponse.json({ error: `Secret "${name}" already exists in this environment` }, { status: 409 });
     }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

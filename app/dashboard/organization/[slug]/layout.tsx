@@ -28,7 +28,6 @@ import { Separator } from "@/components/ui/separator";
 export default async function OrgLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const organization = await getOrganizationBySlug(slug);
-  const organizations = await getOrganizations();
   const { currentUser } = await getCurrentUser();
   
   return (
@@ -82,20 +81,6 @@ export default async function OrgLayout({ children, params }: { children: React.
   );
 }
 
-async function OrgNav({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const base = `/dashboard/organization/${slug}`;
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button variant="outline" asChild><Link href={base}>Overview</Link></Button>
-      <Button variant="outline" asChild><Link href={`${base}/secrets`}>Secrets</Link></Button>
-      <Button variant="outline" asChild><Link href={`${base}/members`}>Members</Link></Button>
-      <Button variant="outline" asChild><Link href={`${base}/invites`}>Invites</Link></Button>
-      <Button variant="outline" asChild><Link href={`${base}/audit`}>Audit</Link></Button>
-      <Button variant="outline" asChild><Link href={`${base}/settings`}>Settings</Link></Button>
-    </div>
-  );
-}
 
 async function OrgSidebar({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
