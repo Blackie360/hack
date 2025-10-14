@@ -22,12 +22,12 @@ export default function CryptoProvider({
         // Handle different possible session structures
         let userId: string | undefined;
         
-        if (sessionData?.data?.user?.id) {
-          userId = sessionData.data.user.id;
-        } else if (sessionData?.user?.id) {
-          userId = sessionData.user.id;
-        } else if (sessionData && typeof sessionData === 'object' && 'session' in sessionData && typeof sessionData.session === 'object' && sessionData.session && 'userId' in sessionData.session) {
-          userId = sessionData.session.userId as string;
+        // Check if data.user.id exists
+        if (sessionData?.data && typeof sessionData.data === 'object' && sessionData.data !== null && 'user' in sessionData.data) {
+          const userData = sessionData.data as { user?: { id: string } };
+          if (userData.user?.id) {
+            userId = userData.user.id;
+          }
         }
         
         if (userId && orgId) {

@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       try {
         // Import the seal function on server side
         const { sealedBoxEncrypt } = await import("@/lib/crypto/box");
-        const { payloadB64 } = sealedBoxEncrypt(deviceKey.publicKey, orgKey);
+        const { payloadB64 } = sealedBoxEncrypt(deviceKey.publicKeyB64, orgKey);
         
         // Check if wrapped key already exists
         const existing = await db.query.orgKeyWrap.findFirst({

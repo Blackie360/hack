@@ -2,7 +2,7 @@ import SecretTable from "@/components/secrets/secret-table";
 import { getOrganizationBySlug } from "@/server/organizations";
 import { getUserAndOrg } from "@/server/context";
 import { db } from "@/db/drizzle";
-import { project, projectMember, member } from "@/db/schema";
+import { project, member } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import ProjectSelector from "@/components/secrets/project-selector";
@@ -11,7 +11,7 @@ import EnvTabs from "@/components/secrets/env-tabs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default async function SecretsPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ projectId?: string }> }) {
+export default async function SecretsPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ projectId?: string; env?: string }> }) {
   const { slug } = await params;
   const sp = await searchParams;
   const org = await getOrganizationBySlug(slug);

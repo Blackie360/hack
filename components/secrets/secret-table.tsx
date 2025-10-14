@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import SecretEditor from "./secret-editor";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getOrgKey } from "@/lib/crypto/org-key-manager";
 import { decryptAesGcm, encryptAesGcm } from "@/lib/crypto/secret";
@@ -37,6 +36,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
 
   useEffect(() => {
     loadSecrets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, environmentId]);
 
   async function loadSecrets() {
@@ -55,7 +55,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       const data = await res.json();
       setRows(data.secrets ?? []);
       setSelected(new Set());
-    } catch (e) {
+    } catch {
       toast.error("Failed to load secrets");
     }
   }
@@ -72,7 +72,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
       const plaintext = await decryptAesGcm(ok, iv, ct, aad);
       setViewSecret({ name: row.name, value: new TextDecoder().decode(plaintext), created: new Date(row.createdAt).toLocaleString() });
-    } catch (e) {
+    } catch {
       toast.error(`Failed to decrypt "${row.name}".`);
     }
   }
@@ -89,7 +89,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
       const plaintext = await decryptAesGcm(ok, iv, ct, aad);
       setEditSecret({ id: row.id, name: row.name, value: new TextDecoder().decode(plaintext) });
-    } catch (e) {
+    } catch {
       toast.error(`Failed to decrypt "${row.name}" for editing.`);
     }
   }
@@ -118,7 +118,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       toast.success("Secret updated");
       setEditSecret(null);
       loadSecrets();
-    } catch (e) {
+    } catch {
       toast.error("Failed to update secret");
     } finally {
       setLoading(false);
@@ -143,7 +143,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       toast.success(`Deleted ${deleteConfirm.length} secret${deleteConfirm.length > 1 ? "s" : ""}`);
       setDeleteConfirm([]);
       loadSecrets();
-    } catch (e) {
+    } catch {
       toast.error("Failed to delete secrets");
     } finally {
       setLoading(false);
@@ -184,7 +184,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
           const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
           const plaintext = await decryptAesGcm(ok, iv, ct, aad);
           decrypted.push({ name: row.name, value: new TextDecoder().decode(plaintext) });
-        } catch (e) {
+        } catch {
           failed.push(row.name);
         }
       }
@@ -202,7 +202,7 @@ export default function SecretTable({ projectId, environmentId, userRole }: { pr
       } else {
         toast.success(`Copied ${decrypted.length} secret${decrypted.length > 1 ? "s" : ""} as .env format`);
       }
-    } catch (e) {
+    } catch {
       toast.error("Failed to copy secrets");
     } finally {
       setDecrypting(false);

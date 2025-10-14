@@ -23,7 +23,7 @@ export default async function MembersPage({ params }: { params: Params }) {
           <EmptyHeader>
             <EmptyMedia variant="icon" />
             <EmptyTitle>Organization Not Found</EmptyTitle>
-            <EmptyDescription>This organization doesn't exist or you don't have access.</EmptyDescription>
+            <EmptyDescription>This organization doesn&apos;t exist or you don&apos;t have access.</EmptyDescription>
           </EmptyHeader>
         </Empty>
       </div>

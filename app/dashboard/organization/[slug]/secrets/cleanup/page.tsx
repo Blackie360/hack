@@ -33,6 +33,7 @@ export default function CleanupPage() {
     if (projectId) {
       checkSecrets();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, environmentId]);
 
   async function checkSecrets() {
@@ -65,8 +66,8 @@ export default function CleanupPage() {
           const aad = row.aad ? Uint8Array.from(atob(row.aad), c => c.charCodeAt(0)) : undefined;
           await decryptAesGcm(ok, iv, ct, aad);
           canDecrypt = true;
-        } catch (e) {
-          error = e instanceof Error ? e.message : "Decryption failed";
+        } catch (err) {
+          error = err instanceof Error ? err.message : "Decryption failed";
         }
 
         statuses.push({
@@ -80,7 +81,7 @@ export default function CleanupPage() {
       }
 
       setSecrets(statuses);
-    } catch (e) {
+    } catch {
       toast.error("Failed to check secrets");
     } finally {
       setLoading(false);
@@ -112,7 +113,7 @@ export default function CleanupPage() {
       
       toast.success(`Deleted ${failedIds.length} secret(s)`);
       checkSecrets(); // Refresh the list
-    } catch (e) {
+    } catch {
       toast.error("Failed to delete secrets");
     } finally {
       setDeleting(false);
@@ -225,12 +226,12 @@ export default function CleanupPage() {
             Secrets that fail to decrypt were likely encrypted with a different key system.
           </p>
           <p>
-            <strong>What causes this?</strong> If the encryption system was changed or if you're 
-            accessing secrets from a different user/organization context, the keys won't match.
+            <strong>What causes this?</strong> If the encryption system was changed or if you&apos;re 
+            accessing secrets from a different user/organization context, the keys won&apos;t match.
           </p>
           <p>
             <strong>Solution:</strong> Delete the old secrets that cannot be decrypted and recreate 
-            them with the current encryption key. The "Delete Failed" button will remove all secrets 
+            them with the current encryption key. The &quot;Delete Failed&quot; button will remove all secrets 
             that fail decryption.
           </p>
         </div>

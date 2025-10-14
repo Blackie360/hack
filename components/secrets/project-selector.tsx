@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ProjectSelector({ slug, projects, selectedProjectId }: { slug: string; projects: Array<{ id: string; name: string }>; selectedProjectId?: string }) {

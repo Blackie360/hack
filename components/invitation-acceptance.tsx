@@ -128,7 +128,7 @@ export function InvitationAcceptance({
             )}
           </div>
           <CardTitle className="text-2xl font-bold">
-            You've Been Invited!
+            You&apos;ve Been Invited!
           </CardTitle>
           <CardDescription className="text-base mt-2">
             <span className="font-semibold">
@@ -200,7 +200,7 @@ export function InvitationAcceptance({
           {isLoggedIn && !emailMatches && (
             <div className="text-center p-3 bg-destructive/10 rounded-lg border border-destructive/20">
               <p className="text-sm text-destructive">
-                You're logged in with a different email. Please log out and sign in with{" "}
+                You&apos;re logged in with a different email. Please log out and sign in with{" "}
                 <span className="font-semibold">{invitation.email}</span> to accept this invitation.
               </p>
             </div>

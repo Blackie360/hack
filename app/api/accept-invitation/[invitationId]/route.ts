@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/db/drizzle";
-import { invitation, member, session } from "@/db/schema";
+import { invitation, member, session as sessionTable } from "@/db/schema";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
@@ -96,9 +96,9 @@ export async function POST(
       .where(eq(invitation.id, invitationId));
 
     // Set this organization as the active organization in the session
-    await db.update(session)
+    await db.update(sessionTable)
       .set({ activeOrganizationId: invitationRecord.organizationId })
-      .where(eq(session.userId, session.user.id));
+      .where(eq(sessionTable.userId, session.user.id));
 
     return NextResponse.json({
       success: true,

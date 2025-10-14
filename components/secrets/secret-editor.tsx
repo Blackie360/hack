@@ -47,7 +47,7 @@ export default function SecretEditor({ projectId, environmentId, onSaved }: { pr
       setName("");
       setValue("");
       onSaved();
-    } catch (e) {
+    } catch {
       toast.error("Failed to save secret");
     } finally {
       setSaving(false);

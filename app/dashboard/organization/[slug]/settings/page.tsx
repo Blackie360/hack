@@ -9,7 +9,7 @@ import { deriveKek } from "@/lib/crypto/argon2";
 import { encryptAesGcm } from "@/lib/crypto/secret";
 import RotateKeysDialog from "@/components/security/rotate-keys-dialog";
 
-export default function SettingsPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function SettingsPage() {
   const [hasRecovery, setHasRecovery] = useState<boolean>(false);
   const [pass, setPass] = useState("");
   const [busy, setBusy] = useState(false);

@@ -3,7 +3,6 @@ import CommandMenu from "@/components/command-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import CryptoProvider from "@/components/security/crypto-provider";
 import { getOrganizationBySlug } from "@/server/organizations";
-import { getOrganizations } from "@/server/organizations";
 import { getCurrentUser } from "@/server/users";
 import { Icon } from "@iconify/react";
 import {

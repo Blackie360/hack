@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import Link from "next/link";
+import { eq } from "drizzle-orm";
 
 interface InvitationPageProps {
   params: Promise<{ invitationId: string }>;
@@ -114,12 +116,12 @@ export default async function InvitationPage({ params, searchParams }: Invitatio
     // Update invitation status
     await db.update(invitationTable)
       .set({ status: "accepted" })
-      .where((inv, { eq }) => eq(inv.id, invitationId));
+      .where(eq(invitationTable.id, invitationId));
 
     // Set this organization as the active organization in the session
     await db.update(sessionTable)
       .set({ activeOrganizationId: invitation.organizationId })
-      .where((sessions, { eq }) => eq(sessions.userId, session.user.id));
+      .where(eq(sessionTable.userId, session.user.id));
 
     // Redirect to the specific organization's dashboard
     redirect(`/dashboard/organization/${invitation.organization.slug}`);

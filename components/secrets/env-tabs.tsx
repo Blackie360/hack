@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function EnvTabs({ slug, projectId, current }: { slug: string; projectId: string; current: string }) {
   const router = useRouter();

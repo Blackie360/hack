@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db/drizzle";
-import { member, project, secret, environment } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { member, project, secret } from "@/db/schema";
 import { getUserAndOrg } from "@/server/context";
 import { logAudit } from "@/server/audit";
 import { and, eq } from "drizzle-orm";

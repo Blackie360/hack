@@ -62,7 +62,7 @@ export function InviteMemberForm({ organizationId }: InviteMemberFormProps) {
         }),
       });
 
-      let data: any = null;
+      let data: { error?: string; message?: string } | null = null;
       try {
         const ct = response.headers.get('content-type') || '';
         if (ct.includes('application/json')) {
@@ -101,7 +101,7 @@ export function InviteMemberForm({ organizationId }: InviteMemberFormProps) {
       </div>
       
       <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
-        Send an invitation to join your organization. They'll receive an email with a link to accept.
+        Send an invitation to join your organization. They&apos;ll receive an email with a link to accept.
       </p>
 
       <Form {...form}>

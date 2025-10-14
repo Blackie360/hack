@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db/drizzle";
-import { project, organization, member, projectMember } from "@/db/schema";
+import { project, organization, projectMember } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { ensureDefaultEnvironments } from "@/server/environments";
 
 export async function POST(request: Request) {

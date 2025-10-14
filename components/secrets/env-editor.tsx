@@ -105,9 +105,6 @@ export default function EnvEditor({ projectId, environmentId, onSaved }: { proje
       );
       const success = results.filter((r) => r.status === "fulfilled").length;
       const failed = results.filter((r) => r.status === "rejected").length;
-      const errors = results
-        .filter((r) => r.status === "rejected")
-        .map((r) => (r as PromiseRejectedResult).reason?.message ?? "Unknown error");
 
       if (success) toast.success(`Saved ${success} secret${success > 1 ? "s" : ""}`);
       if (failed) {
@@ -117,7 +114,7 @@ export default function EnvEditor({ projectId, environmentId, onSaved }: { proje
         if (onSaved) onSaved();
         else if (typeof window !== "undefined") window.location.reload();
       }
-    } catch (e) {
+    } catch {
       toast.error("Failed to save secrets. Please try again.");
     } finally {
       setSaving(false);
