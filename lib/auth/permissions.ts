@@ -3,6 +3,7 @@ import { defaultStatements } from 'better-auth/plugins/organization/access';
 
 const statement = {
     ...defaultStatements,
+    organization: ["invite", "update", "delete"],
     project: ["create", "share", "update", "delete"],
 } as const;
 
