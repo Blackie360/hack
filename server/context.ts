@@ -25,7 +25,7 @@ export async function getUserAndOrg(requiredOrgId?: string): Promise<UserOrgCont
     where: and(eq(member.userId, userId), eq(member.organizationId, orgId)),
   });
 
-  return { userId, orgId, membership };
+  return { userId, orgId, membership: membership ?? null };
 }
 
 
