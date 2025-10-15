@@ -57,6 +57,9 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 # Email (Optional - for invitations and password reset)
 EMAIL_FROM="noreply@yourdomain.com"
 RESEND_API_KEY="your-resend-api-key"
+
+# Cron Job Security (Required for Vercel Cron)
+CRON_SECRET="your-secure-random-secret"
 ```
 
 3. Run database migrations:
@@ -135,10 +138,27 @@ Make sure to set all required environment variables in your `.env.local` file. N
 
 1. Push your code to GitHub
 2. Import the project in Vercel
-3. Add environment variables in Vercel dashboard
+3. Add environment variables in Vercel dashboard (including `CRON_SECRET`)
 4. Deploy!
 
+**Important**: The project includes a Vercel Cron Job that pings the database every Sunday at 12:00 PM UTC to prevent Supabase from deactivating inactive databases. Make sure to set the `CRON_SECRET` environment variable in Vercel.
+
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/lockin)
+
+### Database Keep-Alive
+
+LockIn includes an automated cron job to keep your Supabase database active:
+
+- **Endpoint**: `/api/cron/keep-alive`
+- **Schedule**: Every Sunday at 12:00 PM UTC
+- **Configuration**: See `vercel.json`
+- **Security**: Protected by `CRON_SECRET` environment variable
+
+To test the cron job manually:
+```bash
+curl -X GET "https://your-deployment-url.vercel.app/api/cron/keep-alive" \
+  -H "Authorization: Bearer your-cron-secret"
+```
 
 ## Contributing
 
