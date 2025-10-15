@@ -4,8 +4,8 @@ export async function encryptAesGcm(keyBytes: Uint8Array, plaintext: Uint8Array,
   const key = await crypto.subtle.importKey("raw", keyBytes as BufferSource, { name: "AES-GCM" }, false, ["encrypt"]);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const algorithmParams: AesGcmParams = aad 
-    ? { name: "AES-GCM", iv, additionalData: aad as BufferSource }
-    : { name: "AES-GCM", iv };
+    ? { name: "AES-GCM", iv: iv as BufferSource, additionalData: aad as BufferSource }
+    : { name: "AES-GCM", iv: iv as BufferSource };
   const enc = await crypto.subtle.encrypt(
     algorithmParams,
     key,
@@ -17,8 +17,8 @@ export async function encryptAesGcm(keyBytes: Uint8Array, plaintext: Uint8Array,
 export async function decryptAesGcm(keyBytes: Uint8Array, iv: Uint8Array, ciphertext: Uint8Array, aad?: Uint8Array) {
   const key = await crypto.subtle.importKey("raw", keyBytes as BufferSource, { name: "AES-GCM" }, false, ["decrypt"]);
   const algorithmParams: AesGcmParams = aad 
-    ? { name: "AES-GCM", iv, additionalData: aad as BufferSource }
-    : { name: "AES-GCM", iv };
+    ? { name: "AES-GCM", iv: iv as BufferSource, additionalData: aad as BufferSource }
+    : { name: "AES-GCM", iv: iv as BufferSource };
   const dec = await crypto.subtle.decrypt(
     algorithmParams,
     key,
