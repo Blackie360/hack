@@ -61,25 +61,25 @@ export default function Home() {
           </div>
           
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 max-w-4xl text-gradient animate-fade-up [animation-delay:70ms]">
-            Your API Keys, <br />
-            <span className="text-primary">Secure & Synced</span>
+            Share API Keys <br />
+            <span className="text-primary">Instantly & Securely</span>
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mb-10 animate-fade-up [animation-delay:120ms]">
-            LockIn is a secure platform that lets developers and teams safely store, 
-            manage, and share environment variables from anywhere. Lock in your secrets securely.
+            Perfect for hackathons and small teams. Share environment variables instantly without 
+            compromising security. No more Slack DMs or insecure .env files.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-16 animate-fade-up [animation-delay:180ms]">
             <Link href="/signup">
               <Button size="lg" className="text-lg px-8 gap-2 group">
-                Start Free Trial
+                Start Hackathon
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/login">
               <Button size="lg" variant="outline" className="text-lg px-8">
-                View Dashboard
+                Join Team
               </Button>
             </Link>
           </div>
@@ -135,10 +135,10 @@ export default function Home() {
       <section id="features" className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Everything You Need to Manage Secrets
+            Built for Hackathons & Small Teams
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Built for modern developers with security and simplicity in mind
+            Share API keys instantly without the security risks. Perfect for rapid prototyping and team collaboration.
           </p>
         </div>
 
@@ -168,10 +168,10 @@ export default function Home() {
       <section id="use-cases" className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Perfect For Every Developer
+            Perfect for Hackathons & Small Teams
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Whether you&apos;re solo or working with a team, LockIn has you covered
+            From weekend hackathons to small startup teams, LockIn makes API key sharing effortless
           </p>
         </div>
 
@@ -263,27 +263,27 @@ export default function Home() {
       <section className="container mx-auto px-4 py-20">
         <Card className="p-12 text-center bg-gradient-to-br from-primary/10 via-card to-primary/5 border-primary/20">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Secure Your Secrets?
+            Ready to Share API Keys Securely?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of developers who trust LockIn to keep their API keys 
-            safe, synced, and accessible across all their devices.
+            Perfect for your next hackathon or small team project. Get your team set up 
+            in under 2 minutes and start sharing API keys securely.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">
               <Button size="lg" className="text-lg px-8 gap-2 group">
-                Get Started Free
+                Start Your Hackathon
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/login">
               <Button size="lg" variant="outline" className="text-lg px-8">
-                Sign In
+                Join Team
               </Button>
             </Link>
           </div>
           <p className="text-sm text-muted-foreground mt-6">
-            No credit card required • Free for individuals • Enterprise plans available
+            No credit card required • Free for small teams • Set up in 2 minutes
           </p>
         </Card>
       </section>
@@ -310,69 +310,69 @@ export default function Home() {
 
 const features = [
   {
+    icon: <Zap className="h-6 w-6 text-primary" />,
+    title: "Instant Sharing",
+    description: "Share API keys with your hackathon team in seconds. No more copying/pasting in Slack DMs."
+  },
+  {
+    icon: <Users className="h-6 w-6 text-primary" />,
+    title: "Team Collaboration",
+    description: "Perfect for small teams. Add members instantly and share project secrets securely."
+  },
+  {
     icon: <Lock className="h-6 w-6 text-primary" />,
-    title: "End-to-End Encryption",
-    description: "Your secrets are encrypted before leaving your device. We never see your unencrypted data."
+    title: "Hackathon-Safe",
+    description: "End-to-end encrypted sharing. Safe even on public WiFi at hackathon venues."
   },
   {
     icon: <Globe className="h-6 w-6 text-primary" />,
     title: "Cross-Device Sync",
-    description: "Access your environment variables from any device, anywhere. Perfect for switching machines."
-  },
-  {
-    icon: <Users className="h-6 w-6 text-primary" />,
-    title: "Team Workspaces",
-    description: "Collaborate securely with your team. Share secrets with fine-grained access controls."
+    description: "Access your team's API keys from laptop, phone, or any device. Perfect for switching machines."
   },
   {
     icon: <Key className="h-6 w-6 text-primary" />,
-    title: "Smart Key Management",
-    description: "Organize your API keys by project, environment, and team. Never lose track again."
+    title: "Quick Setup",
+    description: "Get your team up and running in under 2 minutes. Import existing .env files instantly."
   },
   {
     icon: <Clock className="h-6 w-6 text-primary" />,
-    title: "Auto-Expiring Secrets",
-    description: "Set expiration dates for temporary keys and tokens. Automatic rotation reminders."
-  },
-  {
-    icon: <Zap className="h-6 w-6 text-primary" />,
-    title: "Lightning Fast",
-    description: "Built for speed. Access your secrets instantly with our optimized infrastructure."
+    title: "Temporary Access",
+    description: "Set expiration dates for hackathon projects. Keys auto-expire when the event ends."
   }
 ];
 
 const useCases = [
   {
-    icon: <Code2 className="h-8 w-8 text-primary" />,
-    title: "Solo Developers",
-    description: "Keep your personal projects organized and secure",
+    icon: <Zap className="h-8 w-8 text-primary" />,
+    title: "Hackathon Teams",
+    description: "Share API keys instantly during weekend builds",
     points: [
-      "Sync across all your devices",
-      "Quick access during hackathons",
-      "Never lose .env files again",
-      "Free forever for personal use"
+      "Set up team in under 2 minutes",
+      "Share keys without Slack DMs",
+      "Auto-expire after hackathon ends",
+      "Safe on public WiFi networks"
     ]
   },
   {
     icon: <Users className="h-8 w-8 text-primary" />,
-    title: "Development Teams",
-    description: "Collaborate without compromising security",
+    title: "Small Dev Teams",
+    description: "Perfect for 2-10 person teams",
     points: [
-      "Role-based access control",
-      "Audit logs for compliance",
-      "Team onboarding in minutes",
-      "Shared project environments"
+      "Instant team member invites",
+      "Project-based key sharing",
+      "No complex enterprise setup",
+      "Free for small teams"
     ]
   },
   {
     icon: <GitBranch className="h-8 w-8 text-primary" />,
-    title: "Agencies & Freelancers",
-    description: "Manage multiple client projects effortlessly",
+    title: "Startup Teams",
+    description: "Secure API key management for early-stage companies",
     points: [
-      "Multi-project organization",
-      "Client-specific workspaces",
-      "Easy handoff process",
-      "Secure client collaboration"
+      "Quick onboarding for new hires",
+      "Client project separation",
+      "Easy key rotation",
+      "Audit trail for compliance"
     ]
   }
 ];
