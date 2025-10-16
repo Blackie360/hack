@@ -86,41 +86,41 @@ export default function Home() {
 
           {/* Hero Visual */}
           <div className="relative w-full max-w-5xl animate-fade-up [animation-delay:240ms]">
-            <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
-            <Card className="relative p-8 glass border border-primary/20 shadow-2xl">
+            <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full" />
+            <Card className="relative p-8 glass border border-primary/10 shadow-2xl opacity-60 hover:opacity-80 hover:scale-105 transition-all duration-300 ease-out">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground/70">
                     <Code2 className="h-4 w-4" />
                     <span className="font-mono">.env.production</span>
                   </div>
-                  <div className="rounded-lg bg-muted/50 p-4 font-mono text-sm text-left space-y-2">
+                  <div className="rounded-lg bg-muted/30 p-4 font-mono text-sm text-left space-y-2">
                     <div className="flex items-start gap-2">
-                      <Key className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground">DATABASE_URL=***</span>
+                      <Key className="h-4 w-4 text-primary/60 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground/60">DATABASE_URL=***</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <Key className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground">API_KEY=***</span>
+                      <Key className="h-4 w-4 text-primary/60 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground/60">API_KEY=***</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <Key className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground">JWT_SECRET=***</span>
+                      <Key className="h-4 w-4 text-primary/60 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground/60">JWT_SECRET=***</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-center">
                   <div className="text-center space-y-4">
                     <div className="flex items-center justify-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Shield className="h-6 w-6 text-primary" />
+                      <div className="h-12 w-12 rounded-full bg-primary/5 flex items-center justify-center">
+                        <Shield className="h-6 w-6 text-primary/50" />
                       </div>
-                      <ArrowRight className="h-6 w-6 text-muted-foreground" />
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Globe className="h-6 w-6 text-primary" />
+                      <ArrowRight className="h-6 w-6 text-muted-foreground/50" />
+                      <div className="h-12 w-12 rounded-full bg-primary/5 flex items-center justify-center">
+                        <Globe className="h-6 w-6 text-primary/50" />
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground/60">
                       Encrypted & Synced Across Devices
                     </p>
                   </div>
