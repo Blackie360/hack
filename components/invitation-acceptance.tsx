@@ -115,17 +115,9 @@ export function InvitationAcceptance({
       <Card className="max-w-md w-full">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
-            {invitation.organizationLogo ? (
-              <img
-                src={invitation.organizationLogo}
-                alt={invitation.organizationName}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-primary-foreground" />
-              </div>
-            )}
+            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+              <Building2 className="w-8 h-8 text-primary-foreground" />
+            </div>
           </div>
           <CardTitle className="text-2xl font-bold">
             You&apos;ve Been Invited!
