@@ -14,6 +14,10 @@ import { sendEmail } from "./email";
 import { ac, admin, member, owner } from "./auth/permissions";
 
 export const auth = betterAuth({
+    baseURL: process.env.NEXT_PUBLIC_APP_URL,
+    trustedOrigins: [
+        process.env.NEXT_PUBLIC_APP_URL
+    ],
     emailVerification: {
         sendVerificationEmail: async ({ user, url }) => {
             await sendEmail({
