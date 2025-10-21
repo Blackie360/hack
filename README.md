@@ -1,6 +1,6 @@
 # LockIn
 
-![LockIn](public/better-auth-starter.png)
+![LockIn]
 
 ## Overview
 
